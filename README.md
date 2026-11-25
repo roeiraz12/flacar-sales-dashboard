@@ -14,6 +14,8 @@
 
 דאשבורד סטטי בעברית לניתוח הזמנות של יבואן אביזרי רכב: סקירה עם מדדים מול אשתקד, השוואות בין שנים, מפת מכירות לפי אזורים ולוח שנה עם לקוחות לפנות אליהם השבוע, מוצרים להבליט ורעיונות למבצעים. הנתונים נבנים מקובצי ה-CSV של מערכת הנהלת החשבונות ומוצפנים בסיסמה. **בריפו הזה יש רק נתונים סינתטיים** (לקוחות, מוצרים וסכומים מומצאים). סיסמת ההדגמה: `demo`.
 
+הדאשבורד נבנה עבור אבי, הבעלים של חברת יבוא אביזרי רכב. עד אז לא הייתה לו דרך נוחה לראות את התמונה המלאה של העסק. המטרה הייתה להפוך את נתוני המכירות הגולמיים לכלי ניהולי: לזהות מגמות במכירות לאורך זמן, להשוות בין לקוחות ולהבין אילו מוצרים מניעים את העסק, כדי לקבל החלטות על בסיס נתונים.
+
 </div>
 
 ---
@@ -43,18 +45,22 @@ weekly action calendar.
 
 ## Case study
 
+### Background
+
+I built this dashboard for my father, who owns a car-accessories import company. He had no easy way to see the full picture of his business. The goal was to turn raw sales exports into a management tool: spot sales trends over time, compare customers side by side, and understand which products drive the business, so decisions are based on data rather than gut feeling.
+
 ### Problem
 
-The importer's sales history lived in yearly invoice exports from the accounting system: UTF-16 CSV files with
-42 unnamed columns and one row per invoice line. Everyday questions (which customers are ordering less than last
-year, which regions are growing, who is overdue for a call this week) could not be answered from those files at a
-glance, and the data could not be shared as a link without exposing customer details.
+The raw exports are yearly invoice files from the accounting system: UTF-16 CSV files with 42 unnamed columns and
+one row per invoice line. Questions such as which customers are ordering less than last year, which regions are
+growing, or who is overdue for a call this week could not be answered from those files at a glance, and the data
+could not be shared as a link without exposing customer details.
 
 ### Users
 
-Management and sales people at a car-accessories importer. They work in Hebrew (right-to-left), are not
-analysts, and need the numbers on a phone as well as on a desktop, so every page is mobile-friendly and built
-around a concrete question.
+The business owner, and the people he shares the link with. They work in Hebrew (right-to-left), are not analysts,
+and need the numbers on a phone as well as on a desktop, so every page is mobile-friendly and built around a
+concrete question.
 
 ### My role
 
