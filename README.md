@@ -1,3 +1,13 @@
+**[▶ Try the live demo](https://roeiraz12.github.io/flacar-sales-dashboard/)** (password: `demo`, synthetic data)
+
+[![CI](https://github.com/roeiraz12/flacar-sales-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/roeiraz12/flacar-sales-dashboard/actions/workflows/ci.yml)
+[![Deploy demo](https://github.com/roeiraz12/flacar-sales-dashboard/actions/workflows/pages.yml/badge.svg)](https://github.com/roeiraz12/flacar-sales-dashboard/actions/workflows/pages.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+![Demo: unlocking the dashboard with the password, then the overview, sales map and weekly calendar](docs/demo.gif)
+
+*Unlocking the dashboard with the demo password, then browsing the overview, the sales map and the weekly calendar.*
+
 <div dir="rtl">
 
 ## דאשבורד מכירות – פלאקאר
@@ -21,9 +31,76 @@ weekly action calendar.
 
 ## Screenshots
 
-| Password gate | Overview | Sales map | Weekly calendar |
-|---|---|---|---|
-| ![Password gate](docs/screenshots/password-gate.png) | ![Overview](docs/screenshots/overview.png) | ![Sales map](docs/screenshots/geo.png) | ![Calendar](docs/screenshots/calendar.png) |
+| Password gate | Overview |
+|---|---|
+| ![Password gate](docs/screenshots/password-gate.png) | ![Overview](docs/screenshots/overview.png) |
+| *The data file is encrypted; nothing is shown until the password unlocks it in the browser.* | *KPIs against the same period last year, revenue trend, biggest customer changes and top items.* |
+
+| Sales map | Weekly calendar |
+|---|---|
+| ![Sales map](docs/screenshots/geo.png) | ![Calendar](docs/screenshots/calendar.png) |
+| *Revenue by region on a schematic map of Israel, with year-over-year change per region and city.* | *Customers to call each day, products to highlight this season and promotion ideas.* |
+
+## Case study
+
+### Problem
+
+The importer's sales history lived in yearly invoice exports from the accounting system: UTF-16 CSV files with
+42 unnamed columns and one row per invoice line. Everyday questions (which customers are ordering less than last
+year, which regions are growing, who is overdue for a call this week) could not be answered from those files at a
+glance, and the data could not be shared as a link without exposing customer details.
+
+### Users
+
+Management and sales people at a car-accessories importer. They work in Hebrew (right-to-left), are not
+analysts, and need the numbers on a phone as well as on a desktop, so every page is mobile-friendly and built
+around a concrete question.
+
+### My role
+
+I designed and built the project end-to-end: the data model and accounting rules, the Python aggregation
+script, the Node build and encryption step, the three pages (layout, charts, interactions) and the synthetic data
+generator for this public version.
+
+### Key decisions
+
+- **Static site with client-side encryption instead of a server.** The whole site is plain files on a static host.
+  The data is gzip-compressed and encrypted with AES-256-GCM, with the key derived from the password by
+  PBKDF2-SHA256 (310,000 iterations); the browser decrypts it with the Web Crypto API. There is no backend, database
+  or login service to run, secure or pay for, and the encrypted file is useless without the password.
+- **Python + Node pipeline from the ERP exports.** Python (standard library only) reads the raw CSV exports and
+  applies the accounting rules into a compact JSON model; Node (no dependencies) encrypts it and splits each page so
+  its script loads only after the data is unlocked. Updating the site means dropping in new exports and re-running
+  the two scripts.
+- **Synthetic data for the public repository.** The real exports never leave the owner's machine.
+  `tools/make_sample_data.py` generates files with the same layout (UTF-16, 42 columns, credit notes, a walk-in
+  account, seasonality), so the pipeline, the demo and CI all run on realistic but invented data.
+
+### Challenges
+
+- **Accounting semantics.** Credit notes have to reduce revenue and returned units without counting as orders,
+  and a shared walk-in account has to be recognised so it is not treated as one large customer.
+- **Raw export format.** No header row, UTF-16 encoding and day-first dates, with optional `.xlsx` input as well.
+- **Fast pages despite strong key derivation.** PBKDF2 with 310,000 iterations is deliberately slow, so the derived
+  key is cached for 12 hours and switching pages does not ask for the password again.
+- **Useful recommendations from order history alone.** "Customers to call" compares each regular customer with
+  their own ordering rhythm instead of a fixed threshold, and "bought together" pairs require a lift of at least 2
+  across 3 or more orders to filter out coincidences.
+
+### Outcome
+
+The sales history became a link the team opens on a phone: year-over-year KPIs, region and customer trends,
+and a weekly list of whom to call and what to promote, without running a server. This repository is a
+public, synthetic-data copy of that site, with a live demo, a reproducible build and CI that rebuilds it on every
+push.
+
+### Roadmap
+
+- Automate the data refresh (scheduled export, build and deploy) instead of running the scripts by hand.
+- Per-user passwords or key wrapping, so access can be revoked for one person without changing everyone's password.
+- Unit tests for the accounting rules in `build_data.py` (credit notes, walk-in account, item pairs).
+- An English interface option next to the Hebrew one.
+- Export of the weekly call list to a spreadsheet or calendar.
 
 ## Features
 
@@ -46,7 +123,7 @@ weekly action calendar.
 | Data pipeline | Python 3 (`csv`, `collections`; optional `openpyxl` for `.xlsx` exports) |
 | Build / encryption | Node.js (`crypto`, `zlib`), no dependencies |
 | Front end | Plain HTML, CSS and JavaScript, Chart.js (CDN), Web Crypto API, `DecompressionStream` |
-| Hosting | Any static host (originally Netlify) |
+| Hosting | Any static host; the demo runs on GitHub Pages |
 
 ## Architecture
 
@@ -93,7 +170,10 @@ synthetic data, so step 4 alone is enough to look around. The mockups can be ser
 
 ## Deploy
 
-Upload the `site/` folder to any static host (Netlify Drop, GitHub Pages, S3). For real data, run the pipeline on
+The demo is deployed to GitHub Pages by [`.github/workflows/pages.yml`](.github/workflows/pages.yml) on every push
+that changes `site/`; [`.github/workflows/ci.yml`](.github/workflows/ci.yml) regenerates the synthetic data, runs
+the whole pipeline and checks that the built data file decrypts with the demo password. To host it elsewhere, upload
+the `site/` folder to any static host (Netlify Drop, S3). For real data, run the pipeline on
 your own exports with a strong password; `build-site.mjs` without an argument generates one and saves it to
 `site-password.txt`, which is git-ignored. Never commit real exports or `mockups/data.js` built from them.
 
