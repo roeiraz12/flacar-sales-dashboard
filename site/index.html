@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ניתוח הזמנות פלאקאר</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#eef1f5; --card:#ffffff; --ink-1:#18212f; --ink-2:#465166; --ink-3:#8a93a3;
+    --accent:#f39200; --accent-soft:#fff3e0; --series:#2a5bd7; --series-2:#a3adbd;
+    --grid:#e9edf2; --axis:#9aa3b2; --hover:#f5f7fa;
+    --up:#16a35a; --down:#e04848;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Rubik,system-ui,sans-serif;background:var(--bg);color:var(--ink-1);font-size:14px}
+  header{background:var(--card);border-bottom:3px solid var(--accent);padding:8px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+  header img{height:38px;cursor:pointer}
+  header h1{font-size:17px;margin:0;font-weight:600}
+  header .sp{flex:1}
+  .search{position:relative;flex:0 1 280px;min-width:180px}
+  .search input{width:100%;font:inherit;font-size:13px;padding:7px 12px 7px 30px;border:1px solid #d3d9e2;border-radius:8px;background:#f8f9fb}
+  .search input:focus{outline:2px solid var(--accent);outline-offset:-1px;background:#fff}
+  .search::after{content:"⌕";position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:16px;pointer-events:none}
+  .sugg{position:absolute;top:calc(100% + 4px);right:0;left:0;background:#fff;border-radius:10px;box-shadow:0 8px 28px rgba(20,30,50,.18);padding:4px;display:none;max-height:420px;overflow:auto}
+  .sugg.on{display:block}
+  .sugg button{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;width:100%;font:inherit;font-size:13px;text-align:right;border:0;background:none;padding:7px 8px;border-radius:7px;cursor:pointer;color:var(--ink-1)}
+  .sugg button:hover,.sugg button.act{background:var(--hover)}
+  .sugg .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sugg small{color:var(--ink-3);font-size:11px;white-space:nowrap}
+  .tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px;white-space:nowrap}
+  .tag.c{background:#e5edff;color:#1d47b3}.tag.i{background:var(--accent-soft);color:#a35f00}
+  .sugg .none{padding:10px;color:var(--ink-3);font-size:12px}
+  .seg{display:inline-flex;background:#eef1f5;border-radius:8px;padding:2px}
+  .seg button{font:inherit;font-size:12px;border:0;background:transparent;color:var(--ink-2);padding:5px 10px;border-radius:6px;cursor:pointer}
+  .seg button.on{background:#fff;color:var(--ink-1);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  select{font:inherit;font-size:13px;padding:5px 8px;border:1px solid #d3d9e2;border-radius:7px;background:#fff}
+  .meta{font-size:12px;color:var(--ink-3)}
+  .wrap{padding:12px 16px;max-width:1400px;margin:0 auto}
+  .ctx{display:none;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .ctx.on{display:flex}
+  .ctx a{color:var(--series);text-decoration:none;font-size:13px}
+  .ctx a:hover{text-decoration:underline}
+  .ctx .crumb{color:var(--ink-3)}
+  .ctx h2{font-size:20px;margin:0}
+  .ctx .info{font-size:12px;color:var(--ink-3)}
+  .ctx .x{font:inherit;font-size:12px;border:1px solid #d3d9e2;background:#fff;border-radius:20px;padding:3px 10px;cursor:pointer;color:var(--ink-2)}
+  .strip{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:10px}
+  .stat{background:var(--card);border-radius:10px;padding:10px 12px;min-width:0}
+  .stat .t{font-size:11px;color:var(--ink-3)}
+  .stat .v{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stat .d{font-size:11px;font-weight:600;color:var(--ink-3)}
+  .stat .d.up{color:#0f7a42}.stat .d.down{color:#b42828}
+  .grid{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-bottom:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .card{background:var(--card);border-radius:10px;padding:12px 14px;min-width:0}
+  .ch{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;flex-wrap:wrap}
+  .card h2{margin:0;font-size:15px;font-weight:600}
+  .sub{font-size:11px;color:var(--ink-3);margin-bottom:8px}
+  .box{position:relative;height:300px}
+  .box.sm{height:260px}
+  .conc{display:flex;height:26px;border-radius:6px;overflow:hidden;gap:2px;margin:10px 0 6px}
+  .conc div{height:100%}
+  .conc-l{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)}
+  .big{font-size:34px;font-weight:700}
+  .list{list-style:none;margin:0;padding:0}
+  .list li{display:grid;grid-template-columns:18px 1fr auto;gap:8px;align-items:center;padding:5px 4px;border-bottom:1px solid var(--grid);font-size:12.5px;border-radius:4px}
+  .list li[data-go]{cursor:pointer}
+  .list li[data-go]:hover{background:var(--hover)}
+  .list li .n{color:var(--ink-3);font-size:11px}
+  .list li .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list li .nm small{color:var(--ink-3);margin-inline-start:6px}
+  .list li .b{height:4px;background:var(--series);border-radius:2px;margin-top:3px}
+  .num{font-variant-numeric:tabular-nums;font-weight:500;text-align:left}
+  .num small{display:block;color:var(--ink-3);font-weight:400;font-size:11px}
+  .kv{display:grid;grid-template-columns:1fr auto;margin:0}
+  .kv dt,.kv dd{padding:7px 0;border-bottom:1px solid var(--grid);font-size:13px}
+  .kv dt{color:var(--ink-2)}
+  .kv dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;text-align:left}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{font-weight:500;color:var(--ink-3);text-align:right;padding:6px 4px;border-bottom:1px solid var(--grid);font-size:11px}
+  td{padding:6px 4px;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+  td.l,th.l{text-align:left}
+  .dv-row{cursor:pointer!important}
+  .empty-s{padding:24px 0;text-align:center;color:var(--ink-3);font-size:12px}
+  [hidden]{display:none!important}
+  .card.tip{background:#fff8ec;box-shadow:inset 0 0 0 1px #f3d6aa;border-top:3px solid var(--accent)}
+  .card.tip h2{color:#8a4f00}
+  .tips{display:flex;flex-direction:column}
+  .tip-b{padding:8px 0;border-top:1px dashed #efcf9f}
+  .tip-b:first-child{border-top:0;padding-top:2px}
+  .tip-k{font-size:11px;font-weight:600;color:#a35f00;margin-bottom:2px}
+  .tip-b p{margin:3px 0;font-size:12.5px;line-height:1.55;color:var(--ink-1)}
+  .tip-b p.note{font-size:11px;color:var(--ink-3)}
+  .tip-b p.rec{background:#fff;border-radius:6px;padding:6px 8px;font-size:12px;margin-top:6px}
+  .season{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;height:58px;margin:6px 0 2px;direction:ltr}
+  .season div{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+  .season i{display:block;width:100%;background:#e5d6bf;border-radius:3px 3px 0 0}
+  .season i.on{background:var(--accent)}
+  .season span{font-size:9px;color:var(--ink-3);margin-top:2px;white-space:nowrap}
+  .pairs{list-style:none;margin:4px 0;padding:0}
+  .pairs li{display:flex;justify-content:space-between;gap:8px;padding:4px 6px;border-radius:5px;font-size:12.5px;cursor:pointer;background:#fff;margin-bottom:3px}
+  .pairs li:hover{box-shadow:inset 0 0 0 1px #f3d6aa}
+  .pairs .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .pairs b{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tabs{display:flex;gap:2px;background:#eef1f5;border-radius:8px;padding:2px}
+  .tabs a{font-size:13px;color:var(--ink-2);text-decoration:none;padding:5px 12px;border-radius:6px}
+  .tabs a.on{background:#fff;color:var(--ink-1);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  #comparePage{display:flex;flex-direction:column;gap:10px}
+  .cmp-opts{display:flex;gap:8px;flex-wrap:wrap}
+  .s-row{display:grid;grid-template-columns:14px minmax(0,1.3fr) minmax(0,1.6fr) auto auto 28px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--grid)}
+  .s-row .sw{width:14px;height:14px;border-radius:4px}
+  .s-row .per{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-3);white-space:nowrap}
+  .s-row select{padding:4px 4px;font-size:12px}
+  .s-row .rm{border:0;background:none;font-size:18px;color:var(--ink-3);cursor:pointer;border-radius:6px;line-height:1;padding:4px}
+  .s-row .rm:hover{background:var(--hover);color:var(--down)}
+  .s-row .rm:disabled{visibility:hidden}
+  .pick{position:relative;min-width:0}
+  .pick input{width:100%;font:inherit;font-size:13px;padding:6px 10px;border:1px solid #d3d9e2;border-radius:7px;background:#fff;text-overflow:ellipsis}
+  .pick input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  .pick input.set{border-color:#b8c6e6;background:#f5f8ff;font-weight:500}
+  #custPick{flex:0 1 190px;min-width:150px}
+  #custPick input{padding-left:28px}
+  #custPick input.set{border-color:var(--series);background:#f5f8ff}
+  #custPick .clr{position:absolute;left:5px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--ink-3);font-size:14px;cursor:pointer;padding:2px 4px;border-radius:4px}
+  #custPick .clr:hover{background:var(--hover);color:var(--ink-1)}
+  #custPick .sugg{min-width:300px}
+  .pick .sugg{z-index:20}
+  .add{margin-top:10px;font:inherit;font-size:13px;font-weight:600;border:1px dashed var(--series);color:var(--series);background:#f5f8ff;border-radius:8px;padding:7px 14px;cursor:pointer}
+  .add:disabled{opacity:.45;cursor:not-allowed}
+  .lg{display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:8px;font-size:12px;color:var(--ink-2)}
+  .lg span{display:inline-flex;align-items:center;gap:6px}
+  .lg i{width:14px;height:3px;border-radius:2px}
+  .box.tall{height:380px}
+  .tbl{overflow-x:auto}
+  #cmpTable td,#cmpTable th{white-space:nowrap}
+  #cmpTable td.desc{white-space:normal;min-width:220px}
+  #cmpTable .sw{display:inline-block;width:10px;height:10px;border-radius:3px}
+  /* Comparisons page runs denser than the overview */
+  #comparePage{gap:8px}
+  #comparePage .card{padding:10px 12px}
+  #comparePage .card h2{font-size:14px}
+  #comparePage .sub{font-size:10.5px;margin-bottom:6px}
+  #comparePage .seg button{font-size:11px;padding:4px 8px}
+  #comparePage .s-row{padding:4px 0;gap:6px;grid-template-columns:10px minmax(0,1.2fr) minmax(0,1.5fr) auto auto 24px}
+  #comparePage .s-row .sw{width:10px;height:10px;border-radius:3px}
+  #comparePage .pick input{font-size:12px;padding:4px 8px;border-radius:6px}
+  #comparePage .s-row select{font-size:11px;padding:2px 2px;border-radius:5px}
+  #comparePage .s-row .per{font-size:11px;gap:3px}
+  #comparePage .s-row .rm{font-size:14px;padding:2px}
+  #comparePage .add{margin-top:6px;font-size:12px;padding:4px 10px;border-radius:6px}
+  #comparePage .lg{font-size:11px;margin-bottom:4px}
+  #comparePage .box.tall{height:300px}
+  #comparePage table{font-size:11.5px}
+  #comparePage th{font-size:10.5px;padding:4px}
+  #comparePage td{padding:4px}
+  @media (max-width:800px){.s-row,#comparePage .s-row{grid-template-columns:10px 1fr 24px}.s-row .pick,.s-row .per{grid-column:2}}
+  @media (max-width:1100px){.strip{grid-template-columns:repeat(3,1fr)}.grid,.grid3{grid-template-columns:1fr}}
+  @media (max-width:520px){.strip{grid-template-columns:repeat(2,1fr)}header .sp{display:none}.search{flex-basis:100%}}
+  .gate{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
+  .gate[hidden],.gate.auto{display:none}
+  .bootbar{position:fixed;top:0;left:0;right:0;height:3px;z-index:60;overflow:hidden;background:transparent}
+  .bootbar[hidden]{display:none}
+  .bootbar::after{content:"";position:absolute;inset:0 auto 0 0;width:35%;background:var(--accent);animation:boot 1s ease-in-out infinite}
+  @keyframes boot{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+  /* Netlify pins its badge to the bottom corner; room at the end lets the last rows scroll clear of it */
+  body{padding-bottom:88px}
+  .gate form{background:var(--card);border-radius:14px;padding:28px 26px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 30px rgba(20,30,50,.12);border-top:4px solid var(--accent)}
+  .gate img{height:52px;align-self:center}
+  .gate h2{margin:0;font-size:18px;text-align:center}
+  .gate p{margin:0;font-size:13px;color:var(--ink-3);text-align:center}
+  .gate input{font:inherit;font-size:15px;padding:10px 12px;border:1px solid #d3d9e2;border-radius:8px;direction:ltr;text-align:center}
+  .gate input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  .gate button{font:inherit;font-size:15px;font-weight:600;padding:10px;border:0;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer}
+  .gate button:disabled{opacity:.6;cursor:wait}
+  .gate .err{color:var(--down);font-size:13px;min-height:18px;text-align:center}
+</style>
+</head>
+<body>
+<div class="bootbar" id="bootbar"></div>
+<div class="gate auto" id="gate">
+  <form id="gate-form" autocomplete="off">
+    <img src="assets/logo.jpg" alt="לוגו פלאקאר">
+    <h2>ניתוח הזמנות</h2>
+    <p>הנתונים מוצפנים. הזינו סיסמה כדי לצפות.</p>
+    <input id="gate-pw" type="password" placeholder="סיסמה" aria-label="סיסמה" autocomplete="current-password">
+    <button type="submit">כניסה</button>
+    <div class="err" id="gate-err" role="alert"></div>
+  </form>
+</div>
+<script>(function () { var ok = false; try { var m = JSON.parse(localStorage.getItem('flacar-key') || 'null'); ok = !!(m && Date.now() - m.t < 12 * 3600 * 1000); } catch (e) {} if (!ok) document.getElementById('gate').classList.remove('auto'); })();</script>
+<header>
+  <img src="assets/logo.jpg" alt="לוגו פלאקאר" id="home" title="חזרה לתמונה הכללית">
+  <h1>ניתוח הזמנות</h1>
+  <nav class="tabs" aria-label="דפים">
+    <a href="#" data-go="home:" id="tabOverview">סקירה</a>
+    <a href="#compare" data-go="compare:" id="tabCompare">השוואות</a>
+    <a href="geo.html" id="tabGeo">מפה</a>
+    <a href="calendar.html" id="tabCalendar">לוח שנה</a>
+  </nav>
+  <div class="search">
+    <input id="q" placeholder="חיפוש לקוח או פריט (שם / מק״ט)…" autocomplete="off" aria-label="חיפוש לקוח או פריט">
+    <div class="sugg" id="sugg" role="listbox"></div>
+  </div>
+  <span class="sp"></span>
+  <div class="pick" id="custPick">
+    <input id="custQ" placeholder="כל הלקוחות" autocomplete="off" aria-label="סינון לפי לקוח">
+    <button type="button" class="clr" id="custClr" hidden aria-label="ניקוי סינון הלקוח" title="כל הלקוחות">✕</button>
+    <div class="sugg" id="custSugg" role="listbox"></div>
+  </div>
+  <label class="meta" id="yearWrap">שנה <select id="year"></select></label>
+  <span class="meta" id="upd"></span>
+</header>
+<div class="wrap">
+<div id="overview">
+  <section class="ctx" id="ctx"></section>
+  <section class="strip" id="strip"></section>
+
+  <section class="grid">
+    <div class="card">
+      <div class="ch"><h2 id="lineTitle">הכנסות</h2>
+        <div class="seg" id="lineMode"><button data-v="year" class="on">שנתי</button><button data-v="month">חודשי</button></div></div>
+      <div class="sub" id="lineSub"></div>
+      <div class="box"><canvas id="line"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2 id="divTitle"></h2>
+        <div class="seg" id="metric"><button data-v="0" class="on"></button><button data-v="1">הכנסות</button></div></div>
+      <div class="sub" id="divSub"></div>
+      <div id="div"></div>
+    </div>
+  </section>
+
+  <section class="grid3">
+    <div class="card" id="c1"><div class="ch"><h2></h2><span class="tools"></span></div><div class="sub"></div><div class="body"></div></div>
+    <div class="card" id="c2"><div class="ch"><h2></h2><span class="tools"></span></div><div class="sub"></div><div class="body"></div></div>
+    <div class="card" id="c3"><div class="ch"><h2></h2><span class="tools"></span></div><div class="sub"></div><div class="body"></div></div>
+  </section>
+</div>
+
+<div id="comparePage" hidden>
+  <section class="card cmp-ctrl">
+    <div class="ch"><h2>השוואות</h2>
+      <div class="cmp-opts">
+        <div class="seg" id="cmpMetric"><button data-v="rev" class="on">הכנסות</button><button data-v="qty">כמות</button><button data-v="orders">הזמנות</button></div>
+        <div class="seg" id="cmpMode"><button data-v="year">שנתית</button><button data-v="month" class="on">חודשית</button></div>
+      </div></div>
+    <div class="sub">כל קו הוא לקוח ו/או מוצר בטווח חודשים. השארת שדה ריק = כל הלקוחות / כל המוצרים. עד 5 קווים.</div>
+    <div id="series"></div>
+    <button type="button" class="add" id="addSeries">+ הוסף השוואה</button>
+  </section>
+  <section class="card">
+    <h2 id="cmpTitle"></h2>
+    <div class="sub" id="cmpSub"></div>
+    <div class="lg" id="cmpLegend"></div>
+    <div class="box tall"><canvas id="cmpChart"></canvas></div>
+  </section>
+  <section class="card">
+    <h2>סיכום</h2>
+    <div class="sub" id="sumSub"></div>
+    <div class="tbl"><table id="cmpTable"></table></div>
+    <div class="sub" style="margin:8px 0 0">שינוי מול אשתקד: הסה״כ לעומת אותם חודשים בשנה שעברה · הפרש מקו 1: הממוצע החודשי לעומת הקו הראשון בטבלה</div>
+  </section>
+</div>
+</div>
+
+<script src="data.enc.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<script>
+(function () {
+  const E = window.FLACAR_ENC, KEY = 'flacar-key', TTL = 12 * 3600 * 1000;
+  const gate = document.getElementById('gate'), boot = document.getElementById('bootbar');
+  const form = document.getElementById('gate-form'), pw = document.getElementById('gate-pw'), err = document.getElementById('gate-err'), btn = form.querySelector('button');
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const toB64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+  try { localStorage.removeItem('flacar-pw'); } catch (e) {}
+  function load(src) { return new Promise((ok, bad) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = bad; document.body.appendChild(s); }); }
+  async function open(key) {
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(E.iv) }, key, b64(E.ct));
+    const text = await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    window.FLACAR_DATA = JSON.parse(text);
+    gate.hidden = true;
+    await load('common.js');
+    await load('app.js');
+    boot.hidden = true;
+  }
+  // The slow step (deriving the key from the password) runs once; the key is kept on this device
+  // for 12 hours, so other pages open straight away without the password screen
+  async function withPassword(p) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(p), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(E.salt), iterations: E.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, true, ['decrypt']);
+    await open(key);
+    try { localStorage.setItem(KEY, JSON.stringify({ k: toB64(await crypto.subtle.exportKey('raw', key)), s: E.salt, t: Date.now() })); } catch (e) {}
+  }
+  function showForm() { gate.classList.remove('auto'); boot.hidden = true; pw.focus(); }
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!pw.value) return;
+    btn.disabled = true; btn.textContent = 'פותח…'; err.textContent = '';
+    try { await withPassword(pw.value); }
+    catch (x) { err.textContent = 'הסיסמה שגויה. נסו שוב.'; pw.select(); }
+    btn.disabled = false; btn.textContent = 'כניסה';
+  });
+  let saved = null;
+  try {
+    const m = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (m && m.s === E.salt && Date.now() - m.t < TTL) saved = m.k;
+  } catch (e) {}
+  if (!saved) return showForm();
+  crypto.subtle.importKey('raw', b64(saved), 'AES-GCM', false, ['decrypt']).then(open)
+    .catch(() => { try { localStorage.removeItem(KEY); } catch (e) {} showForm(); });
+})();
+</script>
+</body>
+</html>

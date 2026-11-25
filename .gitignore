@@ -1,0 +1,28 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.log
+
+# Local tooling
+.claude/
+.vercel/
+.netlify/
+
+# Secrets: never commit real env files (the *.example files are fine)
+.env
+.env.*
+!.env*.example
+.env.server/
+
+# Large media
+*.mp4
+*.zip
+
+# Real exports and generated data
+/sample-data/
+*.xlsx
+site-password.txt
+__pycache__/

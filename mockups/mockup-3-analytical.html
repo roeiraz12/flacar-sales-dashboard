@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>פלאקאר · מוקאפ 3 · אנליטי</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#eef1f5; --card:#ffffff; --ink-1:#18212f; --ink-2:#465166; --ink-3:#8a93a3;
+    --accent:#f39200; --accent-soft:#fff3e0; --series:#2a5bd7; --series-2:#a3adbd;
+    --grid:#e9edf2; --axis:#9aa3b2; --hover:#f5f7fa;
+    --up:#16a35a; --down:#e04848;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Rubik,system-ui,sans-serif;background:var(--bg);color:var(--ink-1);font-size:14px}
+  header{background:var(--card);border-bottom:3px solid var(--accent);padding:8px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+  header img{height:38px;cursor:pointer}
+  header h1{font-size:17px;margin:0;font-weight:600}
+  header .sp{flex:1}
+  .search{position:relative;flex:0 1 280px;min-width:180px}
+  .search input{width:100%;font:inherit;font-size:13px;padding:7px 12px 7px 30px;border:1px solid #d3d9e2;border-radius:8px;background:#f8f9fb}
+  .search input:focus{outline:2px solid var(--accent);outline-offset:-1px;background:#fff}
+  .search::after{content:"⌕";position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:16px;pointer-events:none}
+  .sugg{position:absolute;top:calc(100% + 4px);right:0;left:0;background:#fff;border-radius:10px;box-shadow:0 8px 28px rgba(20,30,50,.18);padding:4px;display:none;max-height:420px;overflow:auto}
+  .sugg.on{display:block}
+  .sugg button{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;width:100%;font:inherit;font-size:13px;text-align:right;border:0;background:none;padding:7px 8px;border-radius:7px;cursor:pointer;color:var(--ink-1)}
+  .sugg button:hover,.sugg button.act{background:var(--hover)}
+  .sugg .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sugg small{color:var(--ink-3);font-size:11px;white-space:nowrap}
+  .tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px;white-space:nowrap}
+  .tag.c{background:#e5edff;color:#1d47b3}.tag.i{background:var(--accent-soft);color:#a35f00}
+  .sugg .none{padding:10px;color:var(--ink-3);font-size:12px}
+  .seg{display:inline-flex;background:#eef1f5;border-radius:8px;padding:2px}
+  .seg button{font:inherit;font-size:12px;border:0;background:transparent;color:var(--ink-2);padding:5px 10px;border-radius:6px;cursor:pointer}
+  .seg button.on{background:#fff;color:var(--ink-1);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  select{font:inherit;font-size:13px;padding:5px 8px;border:1px solid #d3d9e2;border-radius:7px;background:#fff}
+  .meta{font-size:12px;color:var(--ink-3)}
+  .wrap{padding:12px 16px;max-width:1400px;margin:0 auto}
+  .ctx{display:none;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .ctx.on{display:flex}
+  .ctx a{color:var(--series);text-decoration:none;font-size:13px}
+  .ctx a:hover{text-decoration:underline}
+  .ctx .crumb{color:var(--ink-3)}
+  .ctx h2{font-size:20px;margin:0}
+  .ctx .info{font-size:12px;color:var(--ink-3)}
+  .ctx .x{font:inherit;font-size:12px;border:1px solid #d3d9e2;background:#fff;border-radius:20px;padding:3px 10px;cursor:pointer;color:var(--ink-2)}
+  .strip{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:10px}
+  .stat{background:var(--card);border-radius:10px;padding:10px 12px;min-width:0}
+  .stat .t{font-size:11px;color:var(--ink-3)}
+  .stat .v{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stat .d{font-size:11px;font-weight:600;color:var(--ink-3)}
+  .stat .d.up{color:#0f7a42}.stat .d.down{color:#b42828}
+  .grid{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-bottom:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .card{background:var(--card);border-radius:10px;padding:12px 14px;min-width:0}
+  .ch{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;flex-wrap:wrap}
+  .card h2{margin:0;font-size:15px;font-weight:600}
+  .sub{font-size:11px;color:var(--ink-3);margin-bottom:8px}
+  .box{position:relative;height:300px}
+  .box.sm{height:260px}
+  .conc{display:flex;height:26px;border-radius:6px;overflow:hidden;gap:2px;margin:10px 0 6px}
+  .conc div{height:100%}
+  .conc-l{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)}
+  .big{font-size:34px;font-weight:700}
+  .list{list-style:none;margin:0;padding:0}
+  .list li{display:grid;grid-template-columns:18px 1fr auto;gap:8px;align-items:center;padding:5px 4px;border-bottom:1px solid var(--grid);font-size:12.5px;border-radius:4px}
+  .list li[data-go]{cursor:pointer}
+  .list li[data-go]:hover{background:var(--hover)}
+  .list li .n{color:var(--ink-3);font-size:11px}
+  .list li .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list li .nm small{color:var(--ink-3);margin-inline-start:6px}
+  .list li .b{height:4px;background:var(--series);border-radius:2px;margin-top:3px}
+  .num{font-variant-numeric:tabular-nums;font-weight:500;text-align:left}
+  .num small{display:block;color:var(--ink-3);font-weight:400;font-size:11px}
+  .kv{display:grid;grid-template-columns:1fr auto;margin:0}
+  .kv dt,.kv dd{padding:7px 0;border-bottom:1px solid var(--grid);font-size:13px}
+  .kv dt{color:var(--ink-2)}
+  .kv dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;text-align:left}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{font-weight:500;color:var(--ink-3);text-align:right;padding:6px 4px;border-bottom:1px solid var(--grid);font-size:11px}
+  td{padding:6px 4px;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+  td.l,th.l{text-align:left}
+  .dv-row{cursor:pointer!important}
+  .empty-s{padding:24px 0;text-align:center;color:var(--ink-3);font-size:12px}
+  [hidden]{display:none!important}
+  .card.tip{background:#fff8ec;box-shadow:inset 0 0 0 1px #f3d6aa;border-top:3px solid var(--accent)}
+  .card.tip h2{color:#8a4f00}
+  .tips{display:flex;flex-direction:column}
+  .tip-b{padding:8px 0;border-top:1px dashed #efcf9f}
+  .tip-b:first-child{border-top:0;padding-top:2px}
+  .tip-k{font-size:11px;font-weight:600;color:#a35f00;margin-bottom:2px}
+  .tip-b p{margin:3px 0;font-size:12.5px;line-height:1.55;color:var(--ink-1)}
+  .tip-b p.note{font-size:11px;color:var(--ink-3)}
+  .tip-b p.rec{background:#fff;border-radius:6px;padding:6px 8px;font-size:12px;margin-top:6px}
+  .season{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;height:58px;margin:6px 0 2px;direction:ltr}
+  .season div{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+  .season i{display:block;width:100%;background:#e5d6bf;border-radius:3px 3px 0 0}
+  .season i.on{background:var(--accent)}
+  .season span{font-size:9px;color:var(--ink-3);margin-top:2px;white-space:nowrap}
+  .pairs{list-style:none;margin:4px 0;padding:0}
+  .pairs li{display:flex;justify-content:space-between;gap:8px;padding:4px 6px;border-radius:5px;font-size:12.5px;cursor:pointer;background:#fff;margin-bottom:3px}
+  .pairs li:hover{box-shadow:inset 0 0 0 1px #f3d6aa}
+  .pairs .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .pairs b{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tabs{display:flex;gap:2px;background:#eef1f5;border-radius:8px;padding:2px}
+  .tabs a{font-size:13px;color:var(--ink-2);text-decoration:none;padding:5px 12px;border-radius:6px}
+  .tabs a.on{background:#fff;color:var(--ink-1);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  #comparePage{display:flex;flex-direction:column;gap:10px}
+  .cmp-opts{display:flex;gap:8px;flex-wrap:wrap}
+  .s-row{display:grid;grid-template-columns:14px minmax(0,1.3fr) minmax(0,1.6fr) auto auto 28px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--grid)}
+  .s-row .sw{width:14px;height:14px;border-radius:4px}
+  .s-row .per{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-3);white-space:nowrap}
+  .s-row select{padding:4px 4px;font-size:12px}
+  .s-row .rm{border:0;background:none;font-size:18px;color:var(--ink-3);cursor:pointer;border-radius:6px;line-height:1;padding:4px}
+  .s-row .rm:hover{background:var(--hover);color:var(--down)}
+  .s-row .rm:disabled{visibility:hidden}
+  .pick{position:relative;min-width:0}
+  .pick input{width:100%;font:inherit;font-size:13px;padding:6px 10px;border:1px solid #d3d9e2;border-radius:7px;background:#fff;text-overflow:ellipsis}
+  .pick input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  .pick input.set{border-color:#b8c6e6;background:#f5f8ff;font-weight:500}
+  #custPick{flex:0 1 190px;min-width:150px}
+  #custPick input{padding-left:28px}
+  #custPick input.set{border-color:var(--series);background:#f5f8ff}
+  #custPick .clr{position:absolute;left:5px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--ink-3);font-size:14px;cursor:pointer;padding:2px 4px;border-radius:4px}
+  #custPick .clr:hover{background:var(--hover);color:var(--ink-1)}
+  #custPick .sugg{min-width:300px}
+  .pick .sugg{z-index:20}
+  .add{margin-top:10px;font:inherit;font-size:13px;font-weight:600;border:1px dashed var(--series);color:var(--series);background:#f5f8ff;border-radius:8px;padding:7px 14px;cursor:pointer}
+  .add:disabled{opacity:.45;cursor:not-allowed}
+  .lg{display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:8px;font-size:12px;color:var(--ink-2)}
+  .lg span{display:inline-flex;align-items:center;gap:6px}
+  .lg i{width:14px;height:3px;border-radius:2px}
+  .box.tall{height:380px}
+  .tbl{overflow-x:auto}
+  #cmpTable td,#cmpTable th{white-space:nowrap}
+  #cmpTable td.desc{white-space:normal;min-width:220px}
+  #cmpTable .sw{display:inline-block;width:10px;height:10px;border-radius:3px}
+  /* Comparisons page runs denser than the overview */
+  #comparePage{gap:8px}
+  #comparePage .card{padding:10px 12px}
+  #comparePage .card h2{font-size:14px}
+  #comparePage .sub{font-size:10.5px;margin-bottom:6px}
+  #comparePage .seg button{font-size:11px;padding:4px 8px}
+  #comparePage .s-row{padding:4px 0;gap:6px;grid-template-columns:10px minmax(0,1.2fr) minmax(0,1.5fr) auto auto 24px}
+  #comparePage .s-row .sw{width:10px;height:10px;border-radius:3px}
+  #comparePage .pick input{font-size:12px;padding:4px 8px;border-radius:6px}
+  #comparePage .s-row select{font-size:11px;padding:2px 2px;border-radius:5px}
+  #comparePage .s-row .per{font-size:11px;gap:3px}
+  #comparePage .s-row .rm{font-size:14px;padding:2px}
+  #comparePage .add{margin-top:6px;font-size:12px;padding:4px 10px;border-radius:6px}
+  #comparePage .lg{font-size:11px;margin-bottom:4px}
+  #comparePage .box.tall{height:300px}
+  #comparePage table{font-size:11.5px}
+  #comparePage th{font-size:10.5px;padding:4px}
+  #comparePage td{padding:4px}
+  @media (max-width:800px){.s-row,#comparePage .s-row{grid-template-columns:10px 1fr 24px}.s-row .pick,.s-row .per{grid-column:2}}
+  @media (max-width:1100px){.strip{grid-template-columns:repeat(3,1fr)}.grid,.grid3{grid-template-columns:1fr}}
+  @media (max-width:520px){.strip{grid-template-columns:repeat(2,1fr)}header .sp{display:none}.search{flex-basis:100%}}
+</style>
+</head>
+<body>
+<header>
+  <img src="assets/logo.jpg" alt="לוגו פלאקאר" id="home" title="חזרה לתמונה הכללית">
+  <h1>ניתוח הזמנות</h1>
+  <nav class="tabs" aria-label="דפים">
+    <a href="#" data-go="home:" id="tabOverview">סקירה</a>
+    <a href="#compare" data-go="compare:" id="tabCompare">השוואות</a>
+    <a href="geo.html" id="tabGeo">מפה</a>
+    <a href="calendar.html" id="tabCalendar">לוח שנה</a>
+  </nav>
+  <div class="search">
+    <input id="q" placeholder="חיפוש לקוח או פריט (שם / מק״ט)…" autocomplete="off" aria-label="חיפוש לקוח או פריט">
+    <div class="sugg" id="sugg" role="listbox"></div>
+  </div>
+  <span class="sp"></span>
+  <div class="pick" id="custPick">
+    <input id="custQ" placeholder="כל הלקוחות" autocomplete="off" aria-label="סינון לפי לקוח">
+    <button type="button" class="clr" id="custClr" hidden aria-label="ניקוי סינון הלקוח" title="כל הלקוחות">✕</button>
+    <div class="sugg" id="custSugg" role="listbox"></div>
+  </div>
+  <label class="meta" id="yearWrap">שנה <select id="year"></select></label>
+  <span class="meta" id="upd"></span>
+</header>
+<div class="wrap">
+<div id="overview">
+  <section class="ctx" id="ctx"></section>
+  <section class="strip" id="strip"></section>
+
+  <section class="grid">
+    <div class="card">
+      <div class="ch"><h2 id="lineTitle">הכנסות</h2>
+        <div class="seg" id="lineMode"><button data-v="year" class="on">שנתי</button><button data-v="month">חודשי</button></div></div>
+      <div class="sub" id="lineSub"></div>
+      <div class="box"><canvas id="line"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2 id="divTitle"></h2>
+        <div class="seg" id="metric"><button data-v="0" class="on"></button><button data-v="1">הכנסות</button></div></div>
+      <div class="sub" id="divSub"></div>
+      <div id="div"></div>
+    </div>
+  </section>
+
+  <section class="grid3">
+    <div class="card" id="c1"><div class="ch"><h2></h2><span class="tools"></span></div><div class="sub"></div><div class="body"></div></div>
+    <div class="card" id="c2"><div class="ch"><h2></h2><span class="tools"></span></div><div class="sub"></div><div class="body"></div></div>
+    <div class="card" id="c3"><div class="ch"><h2></h2><span class="tools"></span></div><div class="sub"></div><div class="body"></div></div>
+  </section>
+</div>
+
+<div id="comparePage" hidden>
+  <section class="card cmp-ctrl">
+    <div class="ch"><h2>השוואות</h2>
+      <div class="cmp-opts">
+        <div class="seg" id="cmpMetric"><button data-v="rev" class="on">הכנסות</button><button data-v="qty">כמות</button><button data-v="orders">הזמנות</button></div>
+        <div class="seg" id="cmpMode"><button data-v="year">שנתית</button><button data-v="month" class="on">חודשית</button></div>
+      </div></div>
+    <div class="sub">כל קו הוא לקוח ו/או מוצר בטווח חודשים. השארת שדה ריק = כל הלקוחות / כל המוצרים. עד 5 קווים.</div>
+    <div id="series"></div>
+    <button type="button" class="add" id="addSeries">+ הוסף השוואה</button>
+  </section>
+  <section class="card">
+    <h2 id="cmpTitle"></h2>
+    <div class="sub" id="cmpSub"></div>
+    <div class="lg" id="cmpLegend"></div>
+    <div class="box tall"><canvas id="cmpChart"></canvas></div>
+  </section>
+  <section class="card">
+    <h2>סיכום</h2>
+    <div class="sub" id="sumSub"></div>
+    <div class="tbl"><table id="cmpTable"></table></div>
+    <div class="sub" style="margin:8px 0 0">שינוי מול אשתקד: הסה״כ לעומת אותם חודשים בשנה שעברה · הפרש מקו 1: הממוצע החודשי לעומת הקו הראשון בטבלה</div>
+  </section>
+</div>
+</div>
+
+<script src="data.js"></script>
+<script src="common.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const { D, fmt, MONTHS } = FC;
+// items: [name, code, {year:{month:[rev,qty]}}, {year:{cust:[rev,qty]}}, {cust:[rev,qty]} for Jan..LAST_MONTH of the previous year]
+const I = D.items;
+Chart.defaults.font.family = 'Rubik';
+Chart.defaults.font.size = 11;
+Chart.defaults.color = '#465166';
+const sel = document.getElementById('year');
+FC.yearOptions(sel);
+document.getElementById('upd').textContent = 'עודכן ' + D.lastDate.split('-').reverse().join('.');
+const state = { lineMode: 'year', metric: 0, view: null, itemsBy: 'rev' };  // view: {t:'c'|'i', id}
+let line, extraChart;
+
+// Which items each customer has bought, built once
+const custItems = {};
+I.forEach((it, i) => { for (const y in it[3]) for (const c in it[3][y]) (custItems[c] ||= new Set()).add(i); });
+
+const sumM = (obj, mm, k) => { let s = 0; if (obj) for (const m in obj) if (+m <= mm) s += obj[m][k]; return s; };
+// Customer split of an item for a period; a partial year is compared with the matching months
+const itemCusts = (it, y, mm) => (mm < 12 && y === FC.LAST_YEAR - 1 ? it[4] : it[3][y]) || {};
+const fmtDate = n => `${String(n % 100).padStart(2, '0')}.${String(Math.floor(n / 100) % 100).padStart(2, '0')}.${Math.floor(n / 10000)}`;
+const toDate = n => new Date(Math.floor(n / 10000), Math.floor(n / 100) % 100 - 1, n % 100);
+const inPeriod = (n, y, mm) => Math.floor(n / 10000) === y && Math.floor(n / 100) % 100 <= mm;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const pctOf = (a, b) => b ? fmt.pct(a, b) : null;
+
+// ---------- navigation ----------
+function readHash() {
+  const m = decodeURIComponent(location.hash).match(/^#([ci])=(.+)$/);
+  state.view = location.hash === '#compare' ? { t: 'compare' } : null;
+  if (m && m[1] === 'c' && D.customers[m[2]]) state.view = { t: 'c', id: m[2] };
+  if (m && m[1] === 'i' && I[+m[2]]) state.view = { t: 'i', id: +m[2] };
+}
+function go(v) {
+  const h = !v ? '' : v.t === 'compare' ? '#compare' : `#${v.t}=${v.id}`;
+  if ((location.hash || '') === h || (!h && location.hash === '#')) render();
+  else location.hash = h;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+window.addEventListener('hashchange', () => { readHash(); render(); });
+document.getElementById('home').onclick = () => go(null);
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-go]');
+  if (t) { e.preventDefault(); const [k, id] = t.dataset.go.split(':'); go(k === 'home' ? null : k === 'compare' ? { t: 'compare' } : { t: k, id: k === 'i' ? +id : id }); }
+});
+
+// ---------- customer filter: picks the customer view for the overview ----------
+const custQ = document.getElementById('custQ'), custSugg = document.getElementById('custSugg'), custClr = document.getElementById('custClr');
+let custOpts = [], custAct = 0;
+const custNow = () => state.view?.t === 'c' ? state.view.id : null;
+function syncCust() {
+  const id = custNow();
+  custQ.value = id ? D.customers[id].n : '';
+  custQ.title = custQ.value;
+  custQ.classList.toggle('set', !!id);
+  custClr.hidden = !id;
+}
+function showCust() {
+  const id = custNow();
+  const q = (custQ.value === (id ? D.customers[id].n : '') ? '' : custQ.value).trim().toLowerCase();
+  // Busiest customers first, so the list is useful before typing
+  custOpts = [{ id: null, n: 'כל הלקוחות' }, ...Object.entries(D.customers)
+    .filter(([, c]) => !q || c.n.toLowerCase().includes(q))
+    .sort((a, b) => b[1].o.length - a[1].o.length).slice(0, 30)
+    .map(([cid, c]) => ({ id: cid, n: c.n, s: c.c }))];
+  custAct = 0;
+  custSugg.innerHTML = custOpts.map((o, k) => `<button type="button" data-k="${k}" class="${k === custAct ? 'act' : ''}" role="option">
+      <span class="tag c">${o.id ? 'לקוח' : 'הכל'}</span><span class="nm">${esc(o.n)}</span><small>${esc(o.s || '')}</small></button>`).join('')
+    + (custOpts.length === 1 && q ? '<div class="none">לא נמצא לקוח</div>' : '');
+  custSugg.classList.add('on');
+}
+function pickCust(k) {
+  const o = custOpts[k];
+  if (!o) return;
+  custSugg.classList.remove('on');
+  custQ.blur();
+  go(o.id ? { t: 'c', id: o.id } : null);
+}
+custQ.addEventListener('focus', () => { custQ.select(); showCust(); });
+custQ.addEventListener('input', showCust);
+custQ.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault(); custAct = (custAct + (e.key === 'ArrowDown' ? 1 : custOpts.length - 1)) % custOpts.length;
+    custSugg.querySelectorAll('button').forEach((b, k) => b.classList.toggle('act', k === custAct));
+  } else if (e.key === 'Enter') { e.preventDefault(); pickCust(custAct); }
+  else if (e.key === 'Escape') { syncCust(); custSugg.classList.remove('on'); custQ.blur(); }
+});
+custSugg.addEventListener('mousedown', e => { const b = e.target.closest('button'); if (b) { e.preventDefault(); pickCust(+b.dataset.k); } });
+custQ.addEventListener('blur', () => { custSugg.classList.remove('on'); syncCust(); });
+custClr.addEventListener('click', () => go(null));
+
+// ---------- search ----------
+const q = document.getElementById('q'), sugg = document.getElementById('sugg');
+let hits = [], act = 0;
+function search() {
+  const s = q.value.trim().toLowerCase();
+  if (!s) { sugg.classList.remove('on'); return; }
+  const cs = Object.entries(D.customers).filter(([, c]) => c.n.toLowerCase().includes(s))
+    .map(([id, c]) => ({ t: 'c', id, n: c.n, sub: c.c, w: c.o.length })).sort((a, b) => b.w - a.w).slice(0, 6);
+  const is = [];
+  for (let i = 0; i < I.length && is.length < 8; i++)
+    if (I[i][0].toLowerCase().includes(s) || I[i][1].toLowerCase().includes(s)) is.push({ t: 'i', id: i, n: I[i][0], sub: I[i][1] && 'מק״ט ' + I[i][1] });
+  hits = [...cs, ...is]; act = 0;
+  sugg.innerHTML = hits.length ? hits.map((h, k) => `<button data-k="${k}" class="${k === act ? 'act' : ''}" role="option">
+      <span class="tag ${h.t}">${h.t === 'c' ? 'לקוח' : 'פריט'}</span><span class="nm">${esc(h.n)}</span><small>${esc(h.sub || '')}</small></button>`).join('')
+    : '<div class="none">לא נמצאו תוצאות</div>';
+  sugg.classList.add('on');
+}
+function pick(k) { const h = hits[k]; if (!h) return; q.value = ''; sugg.classList.remove('on'); go({ t: h.t, id: h.id }); }
+q.addEventListener('input', search);
+q.addEventListener('focus', search);
+q.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault(); act = (act + (e.key === 'ArrowDown' ? 1 : hits.length - 1)) % Math.max(hits.length, 1);
+    sugg.querySelectorAll('button').forEach((b, k) => b.classList.toggle('act', k === act));
+  } else if (e.key === 'Enter') pick(act);
+  else if (e.key === 'Escape') { sugg.classList.remove('on'); q.blur(); }
+});
+sugg.addEventListener('mousedown', e => { const b = e.target.closest('button'); if (b) { e.preventDefault(); pick(+b.dataset.k); } });
+q.addEventListener('blur', () => sugg.classList.remove('on'));
+
+// ---------- controls ----------
+function seg(id, key, cast = v => v) {
+  const el = document.getElementById(id);
+  el.addEventListener('click', e => {
+    if (!e.target.dataset.v) return;
+    state[key] = cast(e.target.dataset.v);
+    el.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === e.target));
+    render();
+  });
+}
+seg('lineMode', 'lineMode');
+seg('metric', 'metric', Number);
+sel.addEventListener('change', render);
+
+const opts = (fmtY, onClick) => ({
+  maintainAspectRatio: false, animation: { duration: 300 },
+  interaction: { mode: 'index', intersect: false },
+  plugins: { legend: { display: false }, tooltip: { rtl: true, callbacks: { label: c => ` ${c.dataset.label ? c.dataset.label + ': ' : ''}${fmtY(c.parsed.y)}` } } },
+  scales: { y: { beginAtZero: true, grid: { color: '#edf0f4' }, border: { display: false }, ticks: { callback: fmtY } }, x: { grid: { display: false } } },
+  onClick,
+});
+
+// ---------- revenue line, for whichever entity is in view ----------
+function monthRev(y, m) {
+  const v = state.view;
+  if (!v) return D.monthly[y]?.[m - 1]?.[0] || 0;
+  if (v.t === 'c') return D.customers[v.id].d[y]?.[m]?.[1] || 0;
+  return I[v.id][2][y]?.[m]?.[0] || 0;
+}
+function drawLine(y) {
+  let data, sub;
+  if (state.lineMode === 'year') {
+    const pi = D.years.findIndex(FC.isPartial);
+    const vals = D.years.map(yr => { let s = 0; for (let m = 1; m <= 12; m++) s += monthRev(yr, m); return s; });
+    data = { labels: D.years.map(String), datasets: [{
+      data: vals, borderColor: '#2a5bd7', borderWidth: 2, tension: .2,
+      pointRadius: D.years.map(yr => yr === y ? 6 : 3), pointBackgroundColor: D.years.map(yr => yr === y ? '#f39200' : '#2a5bd7'),
+      segment: { borderDash: c => c.p1DataIndex === pi ? [6, 5] : undefined } }] };
+    sub = `לפי שנה · ${FC.LAST_YEAR} עד ${MONTHS[FC.LAST_MONTH - 1]} (מקווקו) · לחיצה על נקודה בוחרת שנה`;
+  } else {
+    const labels = [], vals = [];
+    for (const yr of D.years) for (let m = 1; m <= FC.maxMonth(yr); m++) { labels.push(`${MONTHS[m - 1]} ${String(yr).slice(2)}`); vals.push(monthRev(yr, m)); }
+    const rolling = vals.map((_, i) => i < 2 ? null : vals.slice(i - 2, i + 1).reduce((a, b) => a + b, 0) / 3);
+    data = { labels, datasets: [
+      { label: 'חודשי', data: vals, borderColor: '#c3cad6', borderWidth: 1, pointRadius: 0, tension: .2 },
+      { label: 'ממוצע נע 3 ח׳', data: rolling, borderColor: '#2a5bd7', borderWidth: 2, pointRadius: 0, tension: .2 },
+    ] };
+    sub = 'הכנסה חודשית (אפור) וממוצע נע של 3 חודשים (כחול)';
+  }
+  document.getElementById('lineSub').textContent = sub + (state.view?.t === 'i' ? ' · לפי סכום שורות' : '');
+  if (line) line.destroy();
+  line = new Chart(document.getElementById('line'), { type: 'line', data, options: opts(fmt.money,
+    (e, els) => { if (state.lineMode === 'year' && els.length) { sel.value = D.years[els[0].index]; render(); } }) });
+  if (state.lineMode === 'month') { line.options.scales.x.ticks = { maxTicksLimit: 12, autoSkip: true }; line.update(); }
+}
+
+// ---------- shared pieces ----------
+function stat(t, v, p, note) {
+  const d = p == null ? `<div class="d">${note || '—'}</div>`
+    : `<div class="d ${p >= 0 ? 'up' : 'down'}"><span dir="ltr">${p >= 0 ? '▲' : '▼'} ${Math.abs(p).toFixed(1)}%</span></div>`;
+  return `<div class="stat"><div class="t">${t}</div><div class="v" title="${esc(String(v).replace(/<[^>]+>/g, ''))}">${v}</div>${d}</div>`;
+}
+function topDelta(rows) {
+  rows.forEach(r => r.diff = r.cur - r.prev);
+  return {
+    up: rows.filter(r => r.diff > 0).sort((a, b) => b.diff - a.diff).slice(0, 7),
+    down: rows.filter(r => r.diff < 0).sort((a, b) => a.diff - b.diff).slice(0, 7),
+  };
+}
+function card(id, title, sub, body, tools = '') {
+  const c = document.getElementById(id);
+  c.querySelector('h2').textContent = title;
+  c.querySelector('.tools').innerHTML = tools;
+  c.querySelector('.sub').textContent = sub;
+  c.querySelector('.body').innerHTML = body;
+  return c.querySelector('.body');
+}
+function listHtml(rows, val, go) {
+  if (!rows.length) return '<div class="empty-s">אין נתונים בתקופה</div>';
+  const mx = Math.max(...rows.map(r => r.v)) || 1;
+  return `<ul class="list">${rows.map((r, i) => `<li${go ? ` data-go="${go}:${r.id}" title="פתיחה"` : ''}><span class="n">${i + 1}</span>
+    <div><div class="nm">${esc(r.n)}${r.s ? `<small>${esc(r.s)}</small>` : ''}</div><div class="b" style="width:${r.v / mx * 100}%;${r.color ? 'background:' + r.color : ''}"></div></div>
+    <span class="num">${val(r)}</span></li>`).join('')}</ul>`;
+}
+function itemsInPeriod(y, mm) {
+  return I.map((it, i) => ({ id: i, n: it[0], s: it[1], v: sumM(it[2][y], mm, 0), q: sumM(it[2][y], mm, 1) }))
+    .filter(r => r.v > 0 || r.q > 0).sort((a, b) => b.v - a.v);
+}
+function setContext(html) {
+  const el = document.getElementById('ctx');
+  el.innerHTML = html || '';
+  el.classList.toggle('on', !!html);
+}
+function setMetricLabels(first) {
+  document.querySelector('#metric button[data-v="0"]').textContent = first;
+}
+
+// ---------- view: whole company ----------
+function renderAll(y, mm) {
+  setContext('');
+  const { cur, prev } = FC.kpis(y);
+  const top = FC.topCustomers(y, 10);
+  const newCusts = Object.values(D.customers).filter(c => c.d[y] && !Object.keys(c.d).some(k => +k < y)).length;
+  document.getElementById('strip').innerHTML =
+    stat('הכנסות', fmt.money(cur.rev), prev && fmt.pct(cur.rev, prev.rev)) +
+    stat('הזמנות', fmt.num(cur.orders), prev && fmt.pct(cur.orders, prev.orders)) +
+    stat('לקוחות פעילים', fmt.num(cur.custs), prev && fmt.pct(cur.custs, prev.custs)) +
+    stat('הזמנה ממוצעת', '₪' + fmt.num(cur.avg), prev && fmt.pct(cur.avg, prev.avg)) +
+    stat('הזמנות ללקוח', (cur.orders / cur.custs).toFixed(1), prev && fmt.pct(cur.orders / cur.custs, prev.orders / prev.custs)) +
+    stat('לקוחות חדשים', y === D.years[0] ? '—' : fmt.num(newCusts), null, `הזמנה ראשונה מאז ${D.years[0]}`);
+
+  document.getElementById('lineTitle').textContent = 'הכנסות · כל החברה';
+  document.getElementById('divTitle').textContent = 'שינוי לפי לקוח';
+  setMetricLabels('מס׳ הזמנות');
+  const delta = FC.customerDelta(y, state.metric);
+  document.getElementById('divSub').textContent = delta
+    ? `${FC.periodLabel(y)} מול ${y - 1} · שינוי באחוזים (בסוגריים: ${state.metric ? 'ההפרש בהכנסות' : 'ההפרש במספר הזמנות'}) · לחיצה על לקוח פותחת את הדף שלו` : '';
+  FC.renderDiverging(document.getElementById('div'), delta, { format: state.metric ? fmt.money : fmt.num, onClick: id => go({ t: 'c', id }) });
+
+  const top10 = top.rows.reduce((s, r) => s + r.rev, 0);
+  const share = top.total ? top10 / top.total * 100 : 0;
+  card('c1', 'ריכוזיות לקוחות', 'החלק של 10 הלקוחות המובילים מסך ההכנסות', top.rows.length ? `
+    <div class="big">${share.toFixed(0)}%</div>
+    <div class="conc">${top.rows.map((r, i) => `<div data-go="c:${r.id}" title="${esc(r.name)} · ${fmt.money(r.rev)}" style="cursor:pointer;width:${r.rev / top.total * 100}%;background:${i === 0 ? '#1d47b3' : '#2a5bd7'};opacity:${1 - i * 0.06}"></div>`).join('')}<div title="שאר הלקוחות" style="flex:1;background:#dfe4ec"></div></div>
+    <div class="conc-l"><span>10 מובילים · ${fmt.money(top10)}</span><span>${top.count - 10} אחרים · ${fmt.money(top.total - top10)}</span></div>
+    <div class="sub" style="margin-top:14px">הלקוח הגדול ביותר (${esc(top.rows[0].name)}) = ${(top.rows[0].rev / top.total * 100).toFixed(1)}% מההכנסות</div>` : '<div class="empty-s">אין נתונים</div>');
+  card('c2', 'לקוחות מובילים', `לפי הכנסות · ${FC.periodLabel(y)} · לחיצה לפתיחה`,
+    listHtml(top.rows.map(r => ({ id: r.id, n: r.name, v: r.rev })), r => fmt.money(r.v), 'c'));
+  const byQty = state.itemsBy === 'qty';
+  const topItems = itemsInPeriod(y, mm).sort((a, b) => byQty ? b.q - a.q : b.v - a.v).slice(0, 10)
+    .map(r => ({ ...r, rev: r.v, v: byQty ? r.q : r.v, color: 'var(--accent)' }));
+  card('c3', 'פריטים מובילים', `לפי ${byQty ? 'כמות שנמכרה' : 'סכום שורות'} · ${FC.periodLabel(y)} · לחיצה לפתיחה`,
+    listHtml(topItems, r => byQty ? `${fmt.num(r.q)} יח׳<small>${fmt.money(r.rev)}</small>` : `${fmt.money(r.rev)}<small>${fmt.num(r.q)} יח׳</small>`, 'i'),
+    `<div class="seg" id="itemsBy"><button data-v="rev" class="${byQty ? '' : 'on'}">הכנסות</button><button data-v="qty" class="${byQty ? 'on' : ''}">כמות</button></div>`);
+  document.getElementById('itemsBy').onclick = e => { if (e.target.dataset.v) { state.itemsBy = e.target.dataset.v; renderAll(y, mm); } };
+}
+
+// ---------- view: customer page ----------
+function renderCustomer(y, mm, id) {
+  const c = D.customers[id];
+  const sumC = (yr, k) => sumM(c.d[yr], mm, k);
+  const rev = sumC(y, 1), orders = sumC(y, 0);
+  const hasPrev = !!D.monthly[y - 1];
+  const pRev = sumC(y - 1, 1), pOrd = sumC(y - 1, 0);
+  const ids = [...(custItems[id] || [])];
+  const itemRows = ids.map(i => { const v = itemCusts(I[i], y, mm)[id]; return v ? { id: i, n: I[i][0], s: I[i][1], v: v[0], q: v[1] } : null; })
+    .filter(Boolean).sort((a, b) => b.v - a.v);
+  const pItems = ids.filter(i => itemCusts(I[i], y - 1, mm)[id]).length;
+  const allOrders = c.o;
+  const lastO = allOrders[allOrders.length - 1];
+  const daysAgo = lastO ? Math.round((new Date(D.lastDate) - toDate(lastO[0])) / 864e5) : null;
+  const years = Object.keys(c.d).map(Number).sort();
+
+  setContext(`<a href="#" data-go="home:">כל החברה</a><span class="crumb">›</span><span class="tag c">לקוח</span>
+    <h2>${esc(c.n)}</h2><span class="info">${esc(c.c || '')}${c.c ? ' · ' : ''}מס׳ לקוח ${esc(id)}</span>
+    <button class="x" data-go="home:">✕ ניקוי סינון</button>`);
+
+  document.getElementById('strip').innerHTML =
+    stat('הכנסות', fmt.money(rev), hasPrev ? pctOf(rev, pRev) : null, hasPrev && !pRev ? 'לא הזמין אשתקד' : '') +
+    stat('הזמנות', fmt.num(orders), hasPrev ? pctOf(orders, pOrd) : null) +
+    stat('הזמנה ממוצעת', orders ? '₪' + fmt.num(rev / orders) : '—', hasPrev && orders && pOrd ? pctOf(rev / orders, pRev / pOrd) : null) +
+    stat('פריטים שונים', fmt.num(itemRows.length), hasPrev ? pctOf(itemRows.length, pItems) : null) +
+    stat('הזמנה אחרונה', lastO ? fmtDate(lastO[0]) : '—', null, daysAgo == null ? '' : daysAgo === 0 ? 'היום' : `לפני ${fmt.num(daysAgo)} ימים`) +
+    // The data starts in D.years[0], so a customer seen from then on may be older than that
+    stat('לקוח מאז', years[0] || '—', null, +years[0] === D.years[0] ? `מתחילת הנתונים (${D.years[0]}) ולפני` : `${years.length} שנים עם הזמנות`);
+
+  document.getElementById('lineTitle').textContent = 'הכנסות · ' + c.n;
+  document.getElementById('divTitle').textContent = 'שינוי לפי פריט';
+  setMetricLabels('כמות');
+  const k = state.metric ? 0 : 1;
+  const delta = hasPrev ? topDelta(ids.map(i => {
+    const cu = itemCusts(I[i], y, mm)[id], pr = itemCusts(I[i], y - 1, mm)[id];
+    return (cu || pr) && { id: i, name: I[i][0], city: I[i][1] && 'מק״ט ' + I[i][1], cur: cu ? cu[k] : 0, prev: pr ? pr[k] : 0 };
+  }).filter(Boolean)) : null;
+  document.getElementById('divSub').textContent = delta
+    ? `מה הלקוח קנה יותר / פחות · ${FC.periodLabel(y)} מול ${y - 1} · שינוי באחוזים (בסוגריים: ${state.metric ? 'ההפרש בהכנסות' : 'ההפרש בכמות'}) · לחיצה פותחת פריט` : '';
+  const divEl = document.getElementById('div');
+  FC.renderDiverging(divEl, delta, { format: state.metric ? fmt.money : fmt.num, onClick: i => go({ t: 'i', id: +i }) });
+  if (delta && !delta.up.length && !delta.down.length) divEl.innerHTML = '<div class="empty">אין שינוי בתקופה</div>';
+
+  // Profile: position relative to the company
+  const all = FC.topCustomers(y, 99999);
+  const rank = all.rows.findIndex(r => r.id === id) + 1;
+  const pOrders = allOrders.filter(o => inPeriod(o[0], y, mm));
+  const gaps = pOrders.slice(1).map((o, i) => (toDate(o[0]) - toDate(pOrders[i][0])) / 864e5);
+  const lifetime = Object.values(c.d).reduce((s, yd) => s + Object.values(yd).reduce((a, v) => a + v[1], 0), 0);
+  card('c1', 'פרופיל לקוח', FC.periodLabel(y), `<dl class="kv">
+    <dt>דירוג לפי הכנסות</dt><dd>${rank ? `${rank} מתוך ${all.count}` : '—'}</dd>
+    <dt>חלק מהכנסות החברה</dt><dd>${all.total ? (rev / all.total * 100).toFixed(1) + '%' : '—'}</dd>
+    <dt>הזמנות בחודש (ממוצע)</dt><dd>${(orders / mm).toFixed(1)}</dd>
+    <dt>ימים בין הזמנות (ממוצע)</dt><dd>${gaps.length ? (g => g < 10 ? g.toFixed(1) : fmt.num(g))(gaps.reduce((a, b) => a + b, 0) / gaps.length) : '—'}</dd>
+    <dt>שורות להזמנה (ממוצע)</dt><dd>${pOrders.length ? (pOrders.reduce((s, o) => s + o[2], 0) / pOrders.length).toFixed(1) : '—'}</dd>
+    <dt>הכנסות מצטברות <span dir="ltr">${years[0] || ''}–${FC.LAST_YEAR}</span></dt><dd>${fmt.money(lifetime)}</dd></dl>`);
+  card('c2', 'מה הלקוח קונה', `10 הפריטים המובילים לפי סכום · ${FC.periodLabel(y)} · לחיצה פותחת פריט`,
+    listHtml(itemRows.slice(0, 10).map(r => ({ ...r, color: 'var(--accent)' })), r => `${fmt.money(r.v)}<small>${fmt.num(r.q)} יח׳</small>`, 'i'));
+  const recent = pOrders.slice(-12).reverse();
+  card('c3', 'הזמנות אחרונות', `${pOrders.length} הזמנות ב${FC.periodLabel(y)} · 12 האחרונות`, recent.length
+    ? `<table><tr><th>תאריך</th><th>שורות</th><th class="l">סכום</th></tr>${recent.map(o => `<tr><td>${fmtDate(o[0])}</td><td>${o[2]}</td><td class="l">₪${fmt.num(o[1])}</td></tr>`).join('')}</table>`
+    : '<div class="empty-s">אין הזמנות בתקופה</div>');
+}
+
+// ---------- "good to know": seasonality, bought together, lapsed buyers ----------
+// Average units per calendar month across the years the item was on sale
+function itemSeason(it) {
+  const yrs = Object.keys(it[2]).map(Number);
+  const y0 = Math.min(...yrs), y1 = Math.max(...yrs);
+  const sum = Array(12).fill(0), cnt = Array(12).fill(0);
+  let units = 0, active = 0;
+  for (let y = y0; y <= y1; y++) for (let m = 1; m <= 12; m++) {
+    if (y === FC.LAST_YEAR && m > FC.LAST_MONTH) continue;
+    const q = it[2][y]?.[m]?.[1] || 0;
+    sum[m - 1] += q; cnt[m - 1]++; units += q; if (q > 0) active++;
+  }
+  const avg = sum.map((v, k) => cnt[k] ? v / cnt[k] : 0);
+  const tot = avg.reduce((a, b) => a + b, 0);
+  const res = { avg, active, enough: units >= 20 && active >= 4 && tot > 0 };
+  if (!res.enough) return res;
+  // Strongest run of three consecutive months, wrapping December into January
+  let best = -1;
+  for (let k = 0; k < 12; k++) {
+    const w = avg[k] + avg[(k + 1) % 12] + avg[(k + 2) % 12];
+    if (w > best) { best = w; res.start = k; }
+  }
+  res.share = best / tot;
+  res.peak = avg.indexOf(Math.max(...avg));
+  res.low = avg.indexOf(Math.min(...avg));
+  res.years = y1 - y0 + 1;
+  return res;
+}
+function goodToKnow(it, y, mm, cur, prv, hasPrev) {
+  const blocks = [];
+  const M = k => MONTHS[(k + 12) % 12];
+
+  const se = itemSeason(it);
+  const mx = Math.max(...se.avg) || 1;
+  const inWin = k => se.enough && se.share >= .35 && [0, 1, 2].some(d => (se.start + d) % 12 === k);
+  const bars = `<div class="season">${se.avg.map((v, k) => `<div title="${MONTHS[k]} · ממוצע ${fmt.num(v)} יח׳"><i class="${inWin(k) ? 'on' : ''}" style="height:${Math.max(v / mx * 100, 3)}%"></i><span>${MONTHS[k]}</span></div>`).join('')}</div>`;
+  if (!se.enough) {
+    blocks.push(`<section class="tip-b"><div class="tip-k">עונתיות</div>
+      <p>אין עדיין מספיק היסטוריה כדי לזהות עונתיות (${se.active === 1 ? 'חודש אחד' : se.active + ' חודשים'} עם מכירות).</p></section>`);
+  } else if (se.share >= .35) {
+    blocks.push(`<section class="tip-b"><div class="tip-k">מתי נמכר הכי טוב</div>
+      <p><b>${M(se.start)}–${M(se.start + 2)}</b> הם שיא העונה: ${Math.round(se.share * 100)}% מהכמות השנתית נמכרת בשלושת החודשים האלה (בפיזור אחיד היה 25%). החודש החלש ביותר הוא ${M(se.low)}.</p>
+      ${bars}
+      <p class="rec"><b>המלצה:</b> להגדיל מלאי ולתזמן מבצעים עד סוף ${M(se.start - 1)}, לפני שהעונה מתחילה.</p></section>`);
+  } else {
+    blocks.push(`<section class="tip-b"><div class="tip-k">מתי נמכר הכי טוב</div>
+      <p>המכירות יציבות לאורך השנה ואין עונה בולטת. החודש החזק יחסית הוא <b>${M(se.peak)}</b>, והחלש הוא ${M(se.low)}.</p>
+      ${bars}
+      <p class="rec"><b>המלצה:</b> מלאי קבוע לאורך השנה מספיק; אין צורך להיערך לעונה.</p></section>`);
+  }
+
+  const parts = it[7] || [];
+  if (parts.length) {
+    const top = parts.slice(0, 3);
+    blocks.push(`<section class="tip-b"><div class="tip-k">נקנה בדרך כלל יחד עם</div>
+      <ul class="pairs">${top.map(p => `<li data-go="i:${p[0]}" title="פתיחת הפריט"><span class="nm">${esc(I[p[0]][0])}</span><b>${p[2]}%</b></li>`).join('')}</ul>
+      <p class="note">אחוז ההזמנות של הפריט (מתוך ${fmt.num(it[6])}) שכללו גם את המוצר</p>
+      <p class="rec"><b>המלצה:</b> להציע את <b>${esc(I[top[0][0]][0])}</b> לכל לקוח שמזמין את הפריט, או לבנות מהשניים חבילה.</p></section>`);
+  } else {
+    blocks.push(`<section class="tip-b"><div class="tip-k">נקנה בדרך כלל יחד עם</div>
+      <p>לא נמצא מוצר שנקנה איתו באותה הזמנה באופן קבוע (${(it[6] || 0) === 1 ? 'נבדקה הזמנה אחת' : `נבדקו ${fmt.num(it[6] || 0)} הזמנות`}).</p></section>`);
+  }
+
+  if (hasPrev) {
+    const lost = Object.entries(prv).filter(([cid]) => !cur[cid]).sort((a, b) => b[1][0] - a[1][0]);
+    if (lost.length) {
+      const sumLost = lost.reduce((a, [, v]) => a + v[0], 0);
+      blocks.push(`<section class="tip-b"><div class="tip-k">לקוחות שלא חזרו</div>
+        <p>${fmt.num(lost.length)} לקוחות קנו את הפריט ב-${mm < 12 ? `${MONTHS[0]}–${MONTHS[mm - 1]} ${y - 1}` : y - 1} ולא ב-${FC.periodLabel(y)}:</p>
+        <ul class="pairs">${lost.slice(0, 3).map(([cid, v]) => `<li data-go="c:${cid}" title="פתיחת הלקוח"><span class="nm">${esc(D.customers[cid]?.n || cid)}</span><b>${fmt.money(v[0])}</b></li>`).join('')}</ul>
+        <p class="rec"><b>המלצה:</b> לפנות אליהם. יחד הם קנו את הפריט ב-${fmt.money(sumLost)} בתקופה המקבילה.</p></section>`);
+    }
+  }
+  return `<div class="tips">${blocks.join('')}</div>`;
+}
+
+// ---------- view: item ----------
+function renderItem(y, mm, idx) {
+  const it = I[idx];
+  const hasPrev = !!D.monthly[y - 1];
+  const rev = sumM(it[2][y], mm, 0), qty = sumM(it[2][y], mm, 1);
+  const pRev = sumM(it[2][y - 1], mm, 0), pQty = sumM(it[2][y - 1], mm, 1);
+  const cur = itemCusts(it, y, mm), prv = itemCusts(it, y - 1, mm);
+  const nC = Object.keys(cur).length, pC = Object.keys(prv).length;
+  const company = FC.totals(y, mm).rev;
+  const yearsSold = Object.keys(it[2]).map(Number).sort();
+
+  setContext(`<a href="#" data-go="home:">כל החברה</a><span class="crumb">›</span><span class="tag i">פריט</span>
+    <h2>${esc(it[0])}</h2><span class="info">${it[1] ? 'מק״ט ' + esc(it[1]) : ''}</span>
+    <button class="x" data-go="home:">✕ ניקוי סינון</button>`);
+
+  document.getElementById('strip').innerHTML =
+    stat('הכנסות (סכום שורות)', fmt.money(rev), hasPrev ? pctOf(rev, pRev) : null, hasPrev && !pRev ? 'לא נמכר אשתקד' : '') +
+    stat('כמות שנמכרה', fmt.num(qty), hasPrev ? pctOf(qty, pQty) : null) +
+    stat('לקוחות שקנו', fmt.num(nC), hasPrev ? pctOf(nC, pC) : null) +
+    stat('מחיר ממוצע ליח׳', qty ? '₪' + (rev / qty).toFixed(rev / qty < 100 ? 1 : 0) : '—', hasPrev && qty && pQty ? pctOf(rev / qty, pRev / pQty) : null) +
+    stat('חלק מהכנסות החברה', company ? (rev / company * 100).toFixed(2) + '%' : '—', null) +
+    stat('נמכר בשנים', yearsSold.length ? `<span dir="ltr">${yearsSold[0]}–${yearsSold[yearsSold.length - 1]}</span>` : '—', null, `${yearsSold.length} שנים`);
+
+  document.getElementById('lineTitle').textContent = 'הכנסות · ' + it[0];
+  document.getElementById('divTitle').textContent = 'שינוי לפי לקוח';
+  setMetricLabels('כמות');
+  const k = state.metric ? 0 : 1;
+  const delta = hasPrev ? topDelta([...new Set([...Object.keys(cur), ...Object.keys(prv)])].map(cid => ({
+    id: cid, name: D.customers[cid]?.n || cid, city: D.customers[cid]?.c, cur: cur[cid]?.[k] || 0, prev: prv[cid]?.[k] || 0,
+  }))) : null;
+  document.getElementById('divSub').textContent = delta
+    ? `מי קנה יותר / פחות מהפריט · ${FC.periodLabel(y)} מול ${y - 1} · שינוי באחוזים (בסוגריים: ${state.metric ? 'ההפרש בהכנסות' : 'ההפרש בכמות'}) · לחיצה פותחת לקוח` : '';
+  const divEl = document.getElementById('div');
+  FC.renderDiverging(divEl, delta, { format: state.metric ? fmt.money : fmt.num, onClick: id => go({ t: 'c', id }) });
+  if (delta && !delta.up.length && !delta.down.length) divEl.innerHTML = '<div class="empty">אין שינוי בתקופה</div>';
+
+  document.getElementById('c1').classList.add('tip');
+  card('c1', 'טוב לדעת', 'תובנות מכל היסטוריית המכירות של הפריט', goodToKnow(it, y, mm, cur, prv, hasPrev));
+  // Units first: bar length (v) follows quantity, revenue shown small
+  const custRows = Object.entries(cur).map(([cid, v]) => ({ id: cid, n: D.customers[cid]?.n || cid, s: D.customers[cid]?.c, v: v[1], q: v[1], rev: v[0] }))
+    .sort((a, b) => b.q - a.q || b.rev - a.rev);
+  card('c2', y === FC.LAST_YEAR ? 'מי קונה את הפריט השנה' : `מי קונה את הפריט ב-${y}`,
+    `${custRows.length} לקוחות · לפי כמות · ${FC.periodLabel(y)} · לחיצה פותחת לקוח`,
+    listHtml(custRows.slice(0, 10), r => `${fmt.num(r.q)} יח׳<small>${fmt.money(r.rev)}</small>`, 'c'));
+  const sw = (c, t) => `<span style="display:inline-flex;align-items:center;gap:5px;margin-inline-end:14px;font-size:12px;color:var(--ink-2)"><i style="width:10px;height:10px;border-radius:2px;background:${c}"></i>${t}</span>`;
+  const body = card('c3', 'כמות חודשית', 'יחידות שנמכרו בכל חודש', `<div>${sw('#f39200', y)}${sw('#c3cad6', y - 1)}</div><div class="box sm"><canvas></canvas></div>`);
+  if (extraChart) extraChart.destroy();
+  extraChart = new Chart(body.querySelector('canvas'), { type: 'bar', data: { labels: MONTHS, datasets: [
+    { label: String(y - 1), data: MONTHS.map((_, m) => it[2][y - 1]?.[m + 1]?.[1] || 0), backgroundColor: '#c3cad6', borderRadius: 3 },
+    { label: String(y), data: MONTHS.map((_, m) => m < mm ? it[2][y]?.[m + 1]?.[1] || 0 : null), backgroundColor: '#f39200', borderRadius: 3 },
+  ] }, options: { ...opts(fmt.num), plugins: { legend: { display: false }, tooltip: { rtl: true } } } });
+}
+
+// ---------- comparisons page ----------
+// Fixed order, checked for color-blind separation; each line keeps its color when others are removed
+const PALETTE = ['#2a5bd7', '#f39200', '#0f9d8a', '#6b4fc8', '#c2338a'];
+const MAX_SERIES = 5;
+const ym = ([y, m]) => y * 12 + m - 1;
+const FIRST_YM = ym([D.years[0], 1]), LAST_YM = ym([FC.LAST_YEAR, FC.LAST_MONTH]);
+const METRIC_NAME = { rev: 'הכנסות', qty: 'כמות', orders: 'מספר הזמנות' };
+const cmp = {
+  metric: 'rev', mode: 'month',
+  series: [
+    { c: null, i: null, from: [FC.LAST_YEAR - 1, 1], to: [FC.LAST_YEAR - 1, 12], color: PALETTE[0] },
+    { c: null, i: null, from: [FC.LAST_YEAR, 1], to: [FC.LAST_YEAR, FC.LAST_MONTH], color: PALETTE[1] },
+  ],
+};
+let cmpChart, companyQtyCache;
+
+function companyQty(y, m) {
+  if (!companyQtyCache) {
+    companyQtyCache = {};
+    for (const it of I) for (const yy in it[2]) for (const mm in it[2][yy]) {
+      const k = yy * 100 + +mm;
+      companyQtyCache[k] = (companyQtyCache[k] || 0) + it[2][yy][mm][1];
+    }
+  }
+  return companyQtyCache[y * 100 + m] || 0;
+}
+// Value of one line in one month. Order counts exist per document, so not for a line with an item
+function seriesValue(s, y, m) {
+  const metric = cmp.metric;
+  if (s.i != null) {
+    if (metric === 'orders') return null;
+    const it = I[s.i], k = metric === 'rev' ? 0 : 1;
+    return (s.c != null ? it[5][y]?.[s.c]?.[m]?.[k] : it[2][y]?.[m]?.[k]) || 0;
+  }
+  if (s.c != null) {
+    const c = D.customers[s.c];
+    if (metric === 'rev') return c.d[y]?.[m]?.[1] || 0;
+    if (metric === 'orders') return c.d[y]?.[m]?.[0] || 0;
+    let q = 0;
+    for (const i of custItems[s.c] || []) q += I[i][5][y]?.[s.c]?.[m]?.[1] || 0;
+    return q;
+  }
+  if (metric === 'rev') return D.monthly[y]?.[m - 1]?.[0] || 0;
+  if (metric === 'orders') return D.monthly[y]?.[m - 1]?.[1] || 0;
+  return companyQty(y, m);
+}
+function seriesMonths(s) {
+  let a = ym(s.from), b = ym(s.to);
+  if (a > b) [a, b] = [b, a];
+  a = Math.max(a, FIRST_YM); b = Math.min(b, LAST_YM);
+  const out = [];
+  for (let k = a; k <= b; k++) out.push([Math.floor(k / 12), k % 12 + 1]);
+  return out;
+}
+const monthLabel = ([y, m]) => `${MONTHS[m - 1]} ${String(y).slice(2)}`;
+function periodText(months) {
+  if (!months.length) return 'אין נתונים בטווח';
+  const a = months[0], b = months[months.length - 1];
+  if (a[0] === b[0] && a[1] === 1 && b[1] === 12) return String(a[0]);
+  if (a[0] === b[0]) return a[1] === b[1] ? `${MONTHS[a[1] - 1]} ${a[0]}` : `${MONTHS[a[1] - 1]}–${MONTHS[b[1] - 1]} ${a[0]}`;
+  return `${monthLabel(a)} – ${monthLabel(b)}`;
+}
+function seriesName(s) {
+  const parts = [];
+  if (s.c != null) parts.push(D.customers[s.c].n);
+  if (s.i != null) parts.push(I[s.i][0]);
+  return parts.length ? parts.join(' · ') : 'כל החברה';
+}
+
+// Search box limited to one kind (customer or item); an empty choice means "all"
+function picker(kind, s) {
+  const wrap = document.createElement('div');
+  wrap.className = 'pick';
+  const input = document.createElement('input');
+  input.placeholder = kind === 'c' ? 'כל הלקוחות' : 'כל המוצרים';
+  input.setAttribute('aria-label', kind === 'c' ? 'לקוח' : 'מוצר');
+  input.autocomplete = 'off';
+  const list = document.createElement('div');
+  list.className = 'sugg';
+  wrap.append(input, list);
+  let opts = [], act = 0;
+  const current = () => s[kind] == null ? '' : kind === 'c' ? D.customers[s[kind]].n : I[s[kind]][0];
+  const sync = () => { input.value = current(); input.title = input.value; input.classList.toggle('set', s[kind] != null); };
+  function candidates(q) {
+    q = q.trim().toLowerCase();
+    let pool = [];
+    // Rank by activity in this line's own period first, then by all years
+    const inYears = new Set(seriesMonths(s).map(([y]) => y));
+    if (kind === 'c') {
+      // With an item chosen, offer only customers who bought it, biggest buyers first
+      let weight = null;
+      if (s.i != null) {
+        weight = {};
+        for (const [y, o] of Object.entries(I[s.i][3])) for (const id in o) {
+          const w = weight[id] ||= [0, 0];
+          w[0] += inYears.has(+y) ? o[id][0] : 0; w[1] += o[id][0];
+        }
+      }
+      pool = Object.entries(D.customers).filter(([id, c]) => (!weight || id in weight) && (!q || c.n.toLowerCase().includes(q)))
+        .sort((a, b) => weight ? weight[b[0]][0] - weight[a[0]][0] || weight[b[0]][1] - weight[a[0]][1] : b[1].o.length - a[1].o.length)
+        .slice(0, 30).map(([id, c]) => ({ id, n: c.n, sub: c.c }));
+    } else if (s.c != null) {
+      // With a customer chosen, offer only items they bought, by what they spent on each
+      const match = i => !q || I[i][0].toLowerCase().includes(q) || I[i][1].toLowerCase().includes(q);
+      pool = [...(custItems[s.c] || [])].filter(match)
+        .map(i => {
+          let p = 0, all = 0;
+          for (const [y, o] of Object.entries(I[i][3])) { const v = o[s.c]?.[0] || 0; all += v; if (inYears.has(+y)) p += v; }
+          return { i, p, all };
+        })
+        .sort((a, b) => b.p - a.p || b.all - a.all).slice(0, 30)
+        .map(({ i }) => ({ id: i, n: I[i][0], sub: I[i][1] && 'מק״ט ' + I[i][1] }));
+    } else {
+      for (let i = 0; i < I.length && pool.length < 30; i++) {
+        if (q && !I[i][0].toLowerCase().includes(q) && !I[i][1].toLowerCase().includes(q)) continue;
+        pool.push({ id: i, n: I[i][0], sub: I[i][1] && 'מק״ט ' + I[i][1] });
+      }
+    }
+    return [{ id: null, n: kind === 'c' ? 'כל הלקוחות' : 'כל המוצרים' }, ...pool];
+  }
+  function show() {
+    opts = candidates(input.value === current() ? '' : input.value);
+    act = 0;
+    list.innerHTML = opts.map((o, k) => `<button type="button" data-k="${k}" class="${k === act ? 'act' : ''}">
+        <span class="tag ${kind}">${o.id == null ? 'הכל' : kind === 'c' ? 'לקוח' : 'מוצר'}</span><span class="nm">${esc(o.n)}</span><small>${esc(o.sub || '')}</small></button>`).join('')
+      + (opts.length === 1 && input.value ? '<div class="none">לא נמצאו תוצאות</div>' : '');
+    list.classList.add('on');
+  }
+  function choose(k) {
+    const o = opts[k];
+    if (!o) return;
+    s[kind] = o.id;
+    sync(); list.classList.remove('on'); input.blur();
+    drawCompare();
+  }
+  input.addEventListener('focus', () => { input.select(); show(); });
+  input.addEventListener('input', show);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault(); act = (act + (e.key === 'ArrowDown' ? 1 : opts.length - 1)) % opts.length;
+      list.querySelectorAll('button').forEach((b, k) => b.classList.toggle('act', k === act));
+    } else if (e.key === 'Enter') { e.preventDefault(); choose(act); }
+    else if (e.key === 'Escape') { sync(); list.classList.remove('on'); input.blur(); }
+  });
+  list.addEventListener('mousedown', e => { const b = e.target.closest('button'); if (b) { e.preventDefault(); choose(+b.dataset.k); } });
+  input.addEventListener('blur', () => { list.classList.remove('on'); sync(); });
+  sync();
+  return wrap;
+}
+function periodSel(s, key, label) {
+  const wrap = document.createElement('div');
+  wrap.className = 'per';
+  const mSel = document.createElement('select'), ySel = document.createElement('select');
+  mSel.innerHTML = MONTHS.map((n, i) => `<option value="${i + 1}">${n}</option>`).join('');
+  ySel.innerHTML = D.years.map(y => `<option value="${y}">${y}</option>`).join('');
+  mSel.value = s[key][1]; ySel.value = s[key][0];
+  mSel.setAttribute('aria-label', `${label} – חודש`); ySel.setAttribute('aria-label', `${label} – שנה`);
+  mSel.onchange = ySel.onchange = () => { s[key] = [+ySel.value, +mSel.value]; drawCompare(); };
+  wrap.append(label, mSel, ySel);
+  return wrap;
+}
+function renderSeriesRows() {
+  const el = document.getElementById('series');
+  el.innerHTML = '';
+  cmp.series.forEach((s, k) => {
+    const row = document.createElement('div');
+    row.className = 's-row';
+    const sw = document.createElement('span');
+    sw.className = 'sw'; sw.style.background = s.color;
+    const rm = document.createElement('button');
+    rm.type = 'button'; rm.className = 'rm'; rm.textContent = '✕'; rm.title = 'הסרת הקו'; rm.setAttribute('aria-label', 'הסרת הקו');
+    rm.disabled = cmp.series.length === 1;
+    rm.onclick = () => { cmp.series.splice(k, 1); renderSeriesRows(); drawCompare(); };
+    row.append(sw, picker('c', s), picker('i', s), periodSel(s, 'from', 'מ־'), periodSel(s, 'to', 'עד'), rm);
+    el.append(row);
+  });
+  const add = document.getElementById('addSeries');
+  add.disabled = cmp.series.length >= MAX_SERIES;
+  add.textContent = add.disabled ? 'אפשר להשוות עד 5 קווים' : '+ הוסף השוואה';
+}
+document.getElementById('addSeries').onclick = () => {
+  const last = cmp.series[cmp.series.length - 1];
+  const color = PALETTE.find(c => !cmp.series.some(s => s.color === c));
+  cmp.series.push({ c: last.c, i: last.i, from: [...last.from], to: [...last.to], color });
+  renderSeriesRows();
+  drawCompare();
+  document.querySelector('#series .s-row:last-child .pick input')?.focus();
+};
+function segCmp(id, key) {
+  const el = document.getElementById(id);
+  el.addEventListener('click', e => {
+    if (!e.target.dataset.v) return;
+    cmp[key] = e.target.dataset.v;
+    el.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === e.target));
+    drawCompare();
+  });
+}
+segCmp('cmpMetric', 'metric');
+segCmp('cmpMode', 'mode');
+
+function drawCompare() {
+  const f = cmp.metric === 'rev' ? fmt.money : fmt.num;
+  const rows = cmp.series.map(s => {
+    const months = seriesMonths(s);
+    const raw = months.map(([y, m]) => seriesValue(s, y, m));
+    return { s, months, raw, na: raw.some(v => v === null) };
+  });
+  const timeline = cmp.mode === 'year';
+  let labels, n;
+  if (timeline) {
+    // One continuous axis across every line's months; a month name repeats once per year
+    const all = rows.flatMap(r => r.months.map(ym));
+    const a = all.length ? Math.min(...all) : LAST_YM, b = all.length ? Math.max(...all) : LAST_YM;
+    n = b - a + 1;
+    labels = Array.from({ length: n }, (_, k) => monthLabel([Math.floor((a + k) / 12), (a + k) % 12 + 1]));
+    rows.forEach(r => {
+      r.data = Array(n).fill(null);
+      if (!r.na) r.months.forEach((m, j) => { r.data[ym(m) - a] = r.raw[j]; });
+    });
+  } else {
+    // January to December once; a line that spans several years shows the average of each month
+    n = 12;
+    labels = MONTHS;
+    rows.forEach(r => {
+      const sum = Array(12).fill(0), cnt = Array(12).fill(0);
+      if (!r.na) r.months.forEach(([, m], j) => { sum[m - 1] += r.raw[j]; cnt[m - 1]++; });
+      r.cnt = cnt;
+      r.data = sum.map((v, k) => cnt[k] ? v / cnt[k] : null);
+    });
+  }
+  const multiYear = rows.some(r => r.cnt?.some(c => c > 1));
+  const axisNote = timeline ? 'ציר זמן רציף: כל חודש מופיע לפי השנה שלו'
+    : 'כל חודש מופיע פעם אחת, הקווים זה על זה' + (multiYear ? ' · קו שמכסה יותר משנה מוצג כממוצע לחודש' : '');
+
+  document.getElementById('cmpTitle').textContent = `${METRIC_NAME[cmp.metric]} · ${timeline ? 'תצוגה שנתית' : 'תצוגה חודשית'}`;
+  document.getElementById('cmpSub').textContent = axisNote
+    + (cmp.metric === 'rev' ? ' · הכנסות לקו עם מוצר = סכום שורות; בלי מוצר = סך ההזמנות לפני מע״מ' : '')
+    + (rows.some(r => r.na) ? ' · מספר הזמנות לא זמין לקו עם מוצר' : '');
+  document.getElementById('cmpLegend').innerHTML = rows.map(r =>
+    `<span><i style="background:${r.s.color}"></i>${esc(seriesName(r.s))} · ${periodText(r.months)}${r.na ? ' (לא זמין)' : ''}</span>`).join('');
+
+  if (cmpChart) cmpChart.destroy();
+  cmpChart = new Chart(document.getElementById('cmpChart'), {
+    type: 'line',
+    data: { labels, datasets: rows.map(r => ({
+      label: seriesName(r.s), data: r.data,
+      borderColor: r.s.color, backgroundColor: r.s.color, borderWidth: 2, tension: .2,
+      pointRadius: n > 36 ? 0 : 3, pointHoverRadius: 5, pointBorderColor: '#fff', pointBorderWidth: 1.5,
+    })) },
+    options: {
+      ...opts(f),
+      plugins: { legend: { display: false }, tooltip: { rtl: true, callbacks: {
+        title: items => items.length ? labels[items[0].dataIndex] : '',
+        label: c => {
+          const r = rows[c.datasetIndex], k = r.cnt?.[c.dataIndex];
+          return ` ${seriesName(r.s)}: ${f(c.parsed.y)}${k > 1 ? ` (ממוצע ${k} שנים)` : ''}`;
+        },
+      } } },
+    },
+  });
+  if (timeline && n > 24) { cmpChart.options.scales.x.ticks = { maxTicksLimit: 14, autoSkip: true, maxRotation: 0 }; cmpChart.update(); }
+
+  // Summary uses the monthly values, also when the chart shows a running total
+  const base = rows[0];
+  const avgOf = r => r.months.length ? r.raw.reduce((a, b) => a + b, 0) / r.months.length : 0;
+  const pctCell = p => p == null || !isFinite(p) ? '<span style="color:var(--ink-3)">—</span>'
+    : `<span dir="ltr" class="${p >= 0 ? 'up' : 'down'}" style="color:${p >= 0 ? '#0f7a42' : '#b42828'};font-weight:600">${p >= 0 ? '▲' : '▼'} ${Math.abs(p).toFixed(1)}%</span>`;
+  document.getElementById('sumSub').textContent = `${METRIC_NAME[cmp.metric]} · לפי ערכים חודשיים`;
+  document.getElementById('cmpTable').innerHTML = `<tr><th></th><th title="מה נבדק בקו: לקוח, מוצר, או כל החברה">קו</th>
+      <th title="טווח החודשים שנבדק בקו">תקופה</th><th title="כמה חודשים יש בתקופה">מס׳ חודשים</th>
+      <th class="l" title="סכום כל החודשים בתקופה">סה״כ בתקופה</th><th class="l" title="הסה״כ חלקי מספר החודשים">ממוצע לחודש</th>
+      <th title="החודש עם הערך הגבוה ביותר בתקופה, וכמה היה בו">החודש החזק</th><th title="החודש עם הערך הנמוך ביותר בתקופה, וכמה היה בו">החודש החלש</th>
+      <th title="השינוי בסה״כ לעומת אותם חודשים בשנה הקודמת">שינוי מול אשתקד</th><th title="בכמה אחוזים הממוצע החודשי של הקו גבוה או נמוך מזה של קו 1">הפרש מקו 1</th></tr>` +
+    rows.map((r, k) => {
+      if (r.na || !r.months.length) return `<tr><td><span class="sw" style="background:${r.s.color}"></span></td><td class="desc">${esc(seriesName(r.s))}</td>
+        <td>${periodText(r.months)}</td><td colspan="7" style="color:var(--ink-3)">${r.na ? 'מספר הזמנות לא זמין לקו עם מוצר' : 'אין נתונים בטווח'}</td></tr>`;
+      const total = r.raw.reduce((a, b) => a + b, 0), avg = avgOf(r);
+      const hi = r.raw.indexOf(Math.max(...r.raw)), lo = r.raw.indexOf(Math.min(...r.raw));
+      // Same months one year earlier, when the data covers them
+      const prev = r.months.every(([y, m]) => ym([y - 1, m]) >= FIRST_YM) ? r.months.reduce((a, [y, m]) => a + seriesValue(r.s, y - 1, m), 0) : null;
+      const vsBase = k === 0 || base.na || !base.months.length ? null : fmt.pct(avg, avgOf(base));
+      return `<tr><td><span class="sw" style="background:${r.s.color}"></span></td><td class="desc">${esc(seriesName(r.s))}</td>
+        <td>${periodText(r.months)}</td><td>${r.months.length}</td><td class="l"><b>${f(total)}</b></td><td class="l">${f(avg)}</td>
+        <td><bdi>${monthLabel(r.months[hi])}</bdi> · <bdi>${f(r.raw[hi])}</bdi></td><td><bdi>${monthLabel(r.months[lo])}</bdi> · <bdi>${f(r.raw[lo])}</bdi></td>
+        <td>${pctCell(prev ? fmt.pct(total, prev) : null)}</td><td>${k === 0 ? '<span style="color:var(--ink-3)">קו הבסיס</span>' : pctCell(vsBase)}</td></tr>`;
+    }).join('');
+}
+
+function render() {
+  const isCmp = state.view?.t === 'compare';
+  document.getElementById('c1').classList.remove('tip');
+  document.getElementById('overview').hidden = isCmp;
+  document.getElementById('comparePage').hidden = !isCmp;
+  document.getElementById('yearWrap').hidden = isCmp;
+  document.getElementById('custPick').hidden = isCmp;
+  syncCust();
+  document.getElementById('tabCompare').classList.toggle('on', isCmp);
+  document.getElementById('tabOverview').classList.toggle('on', !isCmp);
+  if (isCmp) {
+    if (!document.querySelector('#series .s-row')) renderSeriesRows();
+    drawCompare();
+    return;
+  }
+  const y = +sel.value, mm = FC.maxMonth(y);
+  if (extraChart && state.view?.t !== 'i') { extraChart.destroy(); extraChart = null; }
+  if (!state.view) renderAll(y, mm);
+  else if (state.view.t === 'c') renderCustomer(y, mm, state.view.id);
+  else renderItem(y, mm, state.view.id);
+  drawLine(y);
+}
+readHash();
+render();
+</script>
+</body>
+</html>

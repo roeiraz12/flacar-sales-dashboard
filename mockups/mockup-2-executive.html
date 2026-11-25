@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>פלאקאר · מוקאפ 2 · מנהלים</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1526; --side:#0a1120; --card:#141f35; --card-2:#1a2742;
+    --ink-1:#eef2f9; --ink-2:#b4bfd2; --ink-3:#7c8aa3;
+    --brand:#f6a01a; --line:#6aa8ff; --line-2:#8a96ad;
+    --grid:#24324d; --axis:#5a6a88; --hover:#1d2b48;
+    --up:#2fbf71; --down:#ef5b5b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Assistant,system-ui,sans-serif;background:var(--bg);color:var(--ink-1);min-height:100vh}
+  .layout{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+  aside{background:var(--side);padding:22px 18px;border-left:1px solid var(--grid);display:flex;flex-direction:column;gap:26px}
+  aside img{width:150px}
+  .nav a{display:block;padding:10px 12px;border-radius:10px;color:var(--ink-2);text-decoration:none;font-size:15px;margin-bottom:4px}
+  .nav a.on{background:var(--card-2);color:var(--ink-1);box-shadow:inset -3px 0 0 var(--brand)}
+  .nav a.soon{opacity:.45}
+  .years{display:flex;flex-wrap:wrap;gap:6px}
+  .years button{font:inherit;font-size:13px;border:1px solid var(--grid);background:transparent;color:var(--ink-2);border-radius:8px;padding:4px 9px;cursor:pointer}
+  .years button.on{background:var(--brand);border-color:var(--brand);color:#1a1205;font-weight:700}
+  .side-h{font-size:11px;letter-spacing:.06em;color:var(--ink-3);margin-bottom:8px}
+  main{padding:22px 26px;max-width:1300px}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+  .top h1{margin:0;font-size:26px;font-weight:800}
+  .top p{margin:2px 0 0;color:var(--ink-3);font-size:14px}
+  .badge{background:var(--card);border:1px solid var(--grid);border-radius:10px;padding:6px 12px;font-size:13px;color:var(--ink-2)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+  .card{background:var(--card);border:1px solid var(--grid);border-radius:16px;padding:18px}
+  .kpi .t{font-size:13px;color:var(--ink-3)}
+  .kpi .v{font-size:34px;font-weight:800;margin:4px 0;font-variant-numeric:tabular-nums}
+  .kpi .d{font-size:13px;font-weight:700}
+  .kpi .d.up{color:var(--up)}.kpi .d.down{color:var(--down)}
+  .kpi .d span{color:var(--ink-3);font-weight:400}
+  .spark{height:42px;margin-top:8px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  h2{margin:0;font-size:17px;font-weight:700}
+  .sub{font-size:12px;color:var(--ink-3);margin:2px 0 12px}
+  .box{position:relative;height:250px}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .split h3{margin:0 0 8px;font-size:14px;display:flex;align-items:center;gap:6px}
+  .split h3 i{width:10px;height:10px;border-radius:2px;display:inline-block}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--ink-2);margin-bottom:6px}
+  .legend i{display:inline-block;width:14px;height:2px;margin-left:5px;vertical-align:middle}
+  @media (max-width:1000px){.layout{grid-template-columns:1fr}aside{border-left:0;border-bottom:1px solid var(--grid)}.nav{display:none}.kpis{grid-template-columns:repeat(2,1fr)}.row,.split{grid-template-columns:1fr}main{padding:16px}}
+  @media (max-width:520px){.kpis{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <img src="assets/logo-white.png" alt="לוגו פלאקאר">
+    <nav class="nav">
+      <a class="on" href="#">סקירה כללית</a>
+      <a href="#">לקוחות</a>
+      <a href="#">מוצרים</a>
+      <a class="soon" href="#">גיאוגרפיה · בקרוב</a>
+    </nav>
+    <div><div class="side-h">שנה</div><div class="years" id="years"></div></div>
+  </aside>
+  <main>
+    <div class="top">
+      <div><h1>סקירת מכירות</h1><p id="period"></p></div>
+      <div class="badge" id="upd"></div>
+    </div>
+
+    <section class="kpis" id="kpis"></section>
+
+    <section class="row">
+      <div class="card">
+        <h2>הכנסות לפי שנה</h2>
+        <div class="sub" id="lineSub"></div>
+        <div class="box"><canvas id="rev"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>מספר הזמנות לפי שנה</h2>
+        <div class="sub">אותו ציר זמן, בגרף נפרד</div>
+        <div class="box"><canvas id="ord"></canvas></div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-bottom:16px">
+      <h2>שינוי בהזמנות לפי לקוח</h2>
+      <div class="sub" id="divSub"></div>
+      <div class="split">
+        <div><h3><i style="background:var(--up)"></i>7 העליות הגדולות</h3><div id="up"></div></div>
+        <div><h3><i style="background:var(--down)"></i>7 הירידות הגדולות</h3><div id="down"></div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>הכנסות חודשיות · השנה מול אשתקד</h2>
+      <div class="legend"><span><i style="background:var(--brand)"></i><b id="lgCur"></b></span><span><i style="background:var(--line-2)"></i><b id="lgPrev"></b></span></div>
+      <div class="box"><canvas id="mon"></canvas></div>
+    </section>
+  </main>
+</div>
+
+<script src="data.js"></script>
+<script src="common.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const { D, fmt, MONTHS } = FC;
+Chart.defaults.font.family = 'Assistant';
+Chart.defaults.color = '#b4bfd2';
+Chart.defaults.borderColor = '#24324d';
+let year = FC.LAST_YEAR;
+const charts = {};
+document.getElementById('upd').textContent = 'עודכן עד ' + D.lastDate.split('-').reverse().join('.');
+
+const yearsEl = document.getElementById('years');
+yearsEl.innerHTML = D.years.slice().reverse().map(y => `<button data-y="${y}">${y}</button>`).join('');
+yearsEl.addEventListener('click', e => { if (e.target.dataset.y) { year = +e.target.dataset.y; render(); } });
+
+function chart(id, cfg) {
+  if (charts[id]) { charts[id].data = cfg.data; charts[id].update(); return; }
+  charts[id] = new Chart(document.getElementById(id), cfg);
+}
+const baseOpts = (fmtY, extra = {}) => ({
+  maintainAspectRatio: false,
+  interaction: { mode: 'index', intersect: false },
+  plugins: { legend: { display: false }, tooltip: { rtl: true, callbacks: { label: c => ` ${fmtY(c.parsed.y)}` } } },
+  scales: { y: { grid: { color: '#1f2c45' }, border: { display: false }, ticks: { callback: fmtY } }, x: { grid: { display: false } } },
+  ...extra,
+});
+
+function yearSeries(idx, color, fmtY, id) {
+  const ys = D.years;
+  const vals = ys.map(y => FC.totals(y, 12)[idx]);
+  const pi = ys.findIndex(FC.isPartial);
+  chart(id, {
+    type: 'line',
+    data: { labels: ys.map(String), datasets: [{
+      data: vals, borderColor: color, borderWidth: 2, tension: .3,
+      pointRadius: ys.map(y => y === year ? 7 : 3), pointBackgroundColor: ys.map(y => y === year ? '#f6a01a' : color),
+      pointBorderColor: '#141f35', pointBorderWidth: 2,
+      segment: { borderDash: c => c.p1DataIndex === pi ? [6, 5] : undefined },
+    }] },
+    options: baseOpts(fmtY, { onClick: (e, els) => { if (els.length) { year = ys[els[0].index]; render(); } } }),
+  });
+}
+
+function sparkSvg(vals) {
+  const w = 200, h = 42, max = Math.max(...vals), min = Math.min(...vals);
+  const pts = vals.map((v, i) => `${(i / (vals.length - 1) * w).toFixed(1)},${(h - 4 - (v - min) / (max - min || 1) * (h - 8)).toFixed(1)}`);
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" width="100%"><polyline points="${pts.join(' ')}" fill="none" stroke="#6aa8ff" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function render() {
+  yearsEl.querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.y === year));
+  const mm = FC.maxMonth(year);
+  document.getElementById('period').textContent = FC.periodLabel(year) + (D.monthly[year - 1] ? ` · מול אותה תקופה ב-${year - 1}` : '');
+  const { cur, prev } = FC.kpis(year);
+  const hist = D.years.filter(y => y <= year).slice(-6).map(y => FC.totals(y, FC.maxMonth(y)));
+  const k = (t, key, f) => {
+    const p = prev ? fmt.pct(cur[key], prev[key]) : null;
+    return `<div class="card kpi"><div class="t">${t}</div><div class="v">${f(cur[key])}</div>
+      ${p == null ? '<div class="d"><span>אין שנה קודמת</span></div>' : `<div class="d ${p >= 0 ? 'up' : 'down'}"><span dir="ltr">${p >= 0 ? '▲' : '▼'} ${Math.abs(p).toFixed(1)}%</span> <span>מול ${f(prev[key])}</span></div>`}
+      ${hist.length > 1 ? sparkSvg(hist.map(h => h[key])) : ''}</div>`;
+  };
+  document.getElementById('kpis').innerHTML =
+    k('הכנסות', 'rev', fmt.money) + k('הזמנות', 'orders', fmt.num) + k('לקוחות פעילים', 'custs', fmt.num) + k('הזמנה ממוצעת', 'avg', v => '₪' + fmt.num(v));
+
+  document.getElementById('lineSub').textContent = `${FC.LAST_YEAR} עד ${MONTHS[FC.LAST_MONTH - 1]} (קו מקווקו) · לחיצה על נקודה בוחרת שנה`;
+  yearSeries('rev', '#6aa8ff', fmt.money, 'rev');
+  yearSeries('orders', '#6aa8ff', fmt.num, 'ord');
+
+  const delta = FC.customerDelta(year, 0);
+  document.getElementById('divSub').textContent = delta ? `הפרש במספר ההזמנות · ${FC.periodLabel(year)} מול ${year - 1}` : '';
+  FC.renderDiverging(document.getElementById('up'), delta && { up: delta.up, down: [] }, { negShare: 0 });
+  FC.renderDiverging(document.getElementById('down'), delta && { up: [], down: delta.down }, { negShare: 1 });
+
+  document.getElementById('lgCur').textContent = year;
+  document.getElementById('lgPrev').textContent = year - 1;
+  const curM = D.monthly[year].slice(0, mm).map(r => r[0]);
+  const prevM = D.monthly[year - 1] ? D.monthly[year - 1].map(r => r[0]) : [];
+  chart('mon', {
+    type: 'line',
+    data: { labels: MONTHS, datasets: [
+      { label: String(year), data: curM, borderColor: '#f6a01a', borderWidth: 2, tension: .3, pointRadius: 3, pointBackgroundColor: '#f6a01a' },
+      { label: String(year - 1), data: prevM, borderColor: '#8a96ad', borderWidth: 2, borderDash: [4, 4], tension: .3, pointRadius: 0 },
+    ] },
+    options: baseOpts(fmt.money, { plugins: { legend: { display: false }, tooltip: { rtl: true, callbacks: { label: c => ` ${c.dataset.label}: ${fmt.money(c.parsed.y)}` } } } }),
+  });
+}
+render();
+</script>
+</body>
+</html>
