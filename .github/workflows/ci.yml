@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Generate synthetic exports
+        run: python tools/make_sample_data.py sample-data
+      - name: Build the data model
+        run: python tools/build_data.py sample-data mockups/data.js
+      - name: Check the data model is reproducible
+        run: git diff --exit-code mockups/data.js
+      - name: Build the encrypted site
+        run: node tools/build-site.mjs demo
+      - name: Check the site output
+        run: |
+          for f in index.html calendar.html geo.html app.js calendar-app.js geo-app.js common.js data.enc.js assets/logo.jpg; do
+            test -s "site/$f" || { echo "missing site/$f"; exit 1; }
+          done
+          node -e "
+            const fs = require('fs'), crypto = require('crypto'), zlib = require('zlib');
+            const src = fs.readFileSync('site/data.enc.js', 'utf8');
+            const E = JSON.parse(src.slice(src.indexOf('{'), src.lastIndexOf('}') + 1));
+            const key = crypto.pbkdf2Sync('demo', Buffer.from(E.salt, 'base64'), E.iter, 32, 'sha256');
+            const buf = Buffer.from(E.ct, 'base64');
+            const d = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(E.iv, 'base64'));
+            d.setAuthTag(buf.subarray(buf.length - 16));
+            const plain = Buffer.concat([d.update(buf.subarray(0, buf.length - 16)), d.final()]);
+            const data = JSON.parse(zlib.gunzipSync(plain));
+            console.log('decrypted OK, top-level keys:', Object.keys(data).join(', '));
+          "
